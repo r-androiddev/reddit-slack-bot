@@ -14,11 +14,13 @@ import javax.inject.Singleton
 class FirebaseConfigModule {
   @Provides
   @IntoMap @StringKey(ConfigValues.Firebase.ACCOUNT_KEY_PATH)
-  @Singleton @FirebaseConfig fun accountKeyPath(config: Config)
+  @Singleton @FirebaseConfig
+  fun accountKeyPath(config: Config)
       = config.getStringFor(ConfigValues.Firebase, ConfigValues.Firebase.ACCOUNT_KEY_PATH)
 
   @Provides
   @IntoMap @StringKey(ConfigValues.Firebase.PROJECT_ID)
-  @Singleton @FirebaseConfig fun projectId(config: Config)
+  @Singleton @FirebaseConfig
+  fun projectId(config: Config)
       = config.getStringFor(ConfigValues.Firebase, ConfigValues.Firebase.PROJECT_ID)
 }
