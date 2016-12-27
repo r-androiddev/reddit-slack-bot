@@ -1,0 +1,8 @@
+build/
+bot/build/
+bot/src/main/resources/*.json
+
+.idea/
+*.iml
+
+.gradle

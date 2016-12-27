@@ -1,0 +1,20 @@
+group 'io.dwak'
+version '1.0-SNAPSHOT'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.1'
+  distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+buildscript {
+    ext.kotlin_version = '1.0.5-3'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.slf4j:slf4j-parent:1.7.13'
+    }
+}
+
