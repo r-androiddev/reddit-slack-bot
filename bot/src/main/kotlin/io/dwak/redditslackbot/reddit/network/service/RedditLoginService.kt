@@ -1,6 +1,7 @@
 package io.dwak.redditslackbot.reddit.network.service
 
 import io.dwak.redditslackbot.reddit.model.AuthData
+import io.reactivex.Single
 import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -17,5 +18,5 @@ interface RedditLoginService {
                      @Field("duration") duration : String = "permanent",
                      @Field("username") username : String,
                      @Field("password") password : String)
-          : Call<AuthData>
+          : Single<AuthData>
 }

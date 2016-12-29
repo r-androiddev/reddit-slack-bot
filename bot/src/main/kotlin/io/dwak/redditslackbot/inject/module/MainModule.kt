@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import io.dwak.redditslackbot.inject.module.config.ConfigModule
 import io.dwak.redditslackbot.reddit.network.adapter.KindAdapter
+import io.dwak.redditslackbot.slack.network.SlackWebhookUrlComponentAdapter
 import retrofit2.Converter
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -21,6 +22,7 @@ class MainModule {
   @Singleton
   fun moshi(): Moshi = Moshi.Builder()
       .add(KindAdapter())
+      .add(SlackWebhookUrlComponentAdapter())
       .build()
 
   @Provides

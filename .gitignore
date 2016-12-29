@@ -1,3 +1,4 @@
+out/
 build/
 bot/build/
 bot/src/main/resources/*.json

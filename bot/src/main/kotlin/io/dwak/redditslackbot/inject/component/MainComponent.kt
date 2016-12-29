@@ -1,7 +1,7 @@
 package io.dwak.redditslackbot.inject.component
 
 import dagger.Component
-import io.dwak.redditslackbot.Bot
+import io.dwak.redditslackbot.http.Bot
 import io.dwak.redditslackbot.inject.annotation.qualifier.FirebaseConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig

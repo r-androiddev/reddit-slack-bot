@@ -6,11 +6,12 @@ import io.dwak.redditslackbot.inject.component.DaggerMainComponent;
 import io.dwak.redditslackbot.inject.component.MainComponent;
 
 public class RedditSlackBot {
-    public static final boolean DEBUG = true;
-    public static void main(String[] args) throws LoadingException{
+    private static final boolean DEBUG = true;
+
+    public static void main(String[] args) throws LoadingException {
         MainComponent mainComponent = DaggerMainComponent.create();
 
-        if(DEBUG){
+        if (DEBUG) {
             System.out.println(mainComponent.redditConfig());
             System.out.println(mainComponent.slackConfig());
             System.out.println(mainComponent.firebaseConfig());
