@@ -12,7 +12,6 @@ public class RedditSlackBot {
         MainComponent mainComponent = DaggerMainComponent.create();
 
         if (DEBUG) {
-            System.out.println(mainComponent.redditConfig());
             System.out.println(mainComponent.slackConfig());
             System.out.println(mainComponent.firebaseConfig());
         }

@@ -1,4 +1,4 @@
-package io.dwak.redditslackbot.reddit
+package io.dwak.redditslackbot.reddit.network.service
 
 import io.dwak.redditslackbot.reddit.model.RedditCommentResponse
 import io.dwak.redditslackbot.reddit.model.RedditFlairResponse

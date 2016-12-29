@@ -4,9 +4,9 @@ package io.dwak.redditslackbot.inject.module
 import dagger.Module
 import dagger.Provides
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.Reddit
-import io.dwak.redditslackbot.reddit.RedditService
 import io.dwak.redditslackbot.reddit.network.service.RedditLoginService
 import io.dwak.redditslackbot.reddit.network.service.RedditOauthInterceptor
+import io.dwak.redditslackbot.reddit.network.service.RedditService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.CallAdapter
