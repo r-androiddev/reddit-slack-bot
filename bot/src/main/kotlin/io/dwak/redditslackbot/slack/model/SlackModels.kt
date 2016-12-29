@@ -16,3 +16,18 @@ data class SlackIncomingWebHook(val channel : String,
                                 val url : SlackWebhookUrlComponents)
 
 data class SlackWebhookUrlComponents(val id1 : String, val id2 : String, val id3 : String)
+
+
+data class WebHookPayload(val text : String,
+                          val attachments : List<WebHookPayloadAttachment>)
+
+data class WebHookPayloadAttachment(val text : String,
+                                    val fallback : String,
+                                    val callback_id : String,
+                                    val attachment_type : String? = "default",
+                                    val actions : List<WebHookPayloadAction>)
+
+data class WebHookPayloadAction(val name : String,
+                                val text : String,
+                                val type : String = "button",
+                                val value : String)

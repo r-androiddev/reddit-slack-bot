@@ -8,13 +8,15 @@ import io.reactivex.Single
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
 
 interface RedditService {
   @GET("{subreddit}/about/unmoderated")
-  fun unmoderated(@Path("subreddit") subreddit : String) : Single<RedditListing>
+  fun unmoderated(@Header("Authorization") auth: String,
+                  @Path("subreddit") subreddit : String) : Single<RedditListing>
 
   @FormUrlEncoded
   @POST("/api/remove")
