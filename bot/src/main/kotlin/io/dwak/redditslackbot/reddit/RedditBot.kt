@@ -3,6 +3,7 @@ package io.dwak.redditslackbot.reddit
 import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.reddit.model.RedditInfo
 import io.dwak.redditslackbot.reddit.network.service.RedditLoginService
+import io.dwak.redditslackbot.reddit.network.service.RedditService
 import io.reactivex.Single
 import java.util.*
 import javax.inject.Inject

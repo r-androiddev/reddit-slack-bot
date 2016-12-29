@@ -25,6 +25,9 @@ import javax.inject.Inject
 
 
 class SlackLogin @Inject constructor(private val slackBot: SlackBot) : RequestAction {
+
+  companion object { const val name = "slack-login" }
+
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       val code = req.request().parameter("code").orElse("")

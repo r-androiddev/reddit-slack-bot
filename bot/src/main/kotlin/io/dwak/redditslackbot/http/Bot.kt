@@ -7,32 +7,17 @@ import io.dwak.redditslackbot.http.action.CheckPosts
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.SlackLogin
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
-class Bot @Inject constructor(private val slackLogin: SlackLogin,
-                              private val redditLogin: RedditLogin,
-                              private val checkPosts: CheckPosts,
-                              private val onButton: OnButton)
+class Bot @Inject constructor(private val actions: Map<String, @JvmSuppressWildcards RequestAction>)
   : AppInit {
-  private var lastCheckedTime: ZonedDateTime
-
-  companion object {
-    const val POST_WINDOW = 5L
-    const val CACHE_SIZE = 10
-  }
-
-  init {
-    lastCheckedTime = ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(POST_WINDOW)
-  }
 
   override fun create(env: Environment) {
     with(env.routingEngine()) {
-      registerAutoRoute(async("GET", "/init", slackLogin.action))
-      registerAutoRoute(async("POST", "/init-reddit", redditLogin.action))
-      registerAutoRoute(async("GET", "/check-posts", checkPosts.action))
-      registerAutoRoute(async("POST", "/button", onButton.action))
+      registerAutoRoute(async("GET", "/init", actions[SlackLogin.name]?.action))
+      registerAutoRoute(async("POST", "/init-reddit", actions[RedditLogin.name]?.action))
+      registerAutoRoute(async("GET", "/check-posts", actions[CheckPosts.name]?.action))
+      registerAutoRoute(async("POST", "/button", actions[OnButton.name]?.action))
     }
   }
 }

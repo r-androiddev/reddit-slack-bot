@@ -10,6 +10,9 @@ import javax.inject.Inject
 
 
 class RedditLogin @Inject constructor(private val redditBot: RedditBot) : RequestAction {
+
+  companion object { const val name = "reddit-login" }
+
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       val map = req.request().payload().map { it.payloadToMap() }

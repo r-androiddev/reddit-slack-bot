@@ -8,6 +8,9 @@ import javax.inject.Inject
 
 
 class CheckPosts @Inject constructor() : RequestAction {
+
+  companion object { const val name = "check-posts" }
+
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       future.complete("Checking Posts!")

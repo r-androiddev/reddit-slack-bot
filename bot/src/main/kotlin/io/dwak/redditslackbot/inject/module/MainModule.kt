@@ -3,6 +3,7 @@ package io.dwak.redditslackbot.inject.module
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
+import io.dwak.redditslackbot.inject.module.action.ActionModule
 import io.dwak.redditslackbot.inject.module.config.ConfigModule
 import io.dwak.redditslackbot.reddit.network.adapter.KindAdapter
 import io.dwak.redditslackbot.slack.network.SlackWebhookUrlComponentAdapter
@@ -13,6 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 @Module(includes = arrayOf(
+    ActionModule::class,
     ConfigModule::class,
     DbModule::class,
     FirebaseModule::class,

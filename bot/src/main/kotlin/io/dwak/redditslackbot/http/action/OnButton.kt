@@ -11,6 +11,9 @@ import javax.inject.Inject
 
 class OnButton @Inject constructor(private val redditBot: RedditBot, private val slackBot: SlackBot)
   : RequestAction {
+
+  companion object { const val name = "on-button" }
+
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       future.complete("Checking Posts!")
