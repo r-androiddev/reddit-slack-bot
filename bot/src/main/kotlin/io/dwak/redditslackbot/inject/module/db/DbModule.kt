@@ -1,4 +1,4 @@
-package io.dwak.redditslackbot.inject.module
+package io.dwak.redditslackbot.inject.module.db
 
 import dagger.Binds
 import dagger.Module

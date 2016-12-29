@@ -5,6 +5,9 @@ import dagger.Module
 import dagger.Provides
 import io.dwak.redditslackbot.inject.module.action.ActionModule
 import io.dwak.redditslackbot.inject.module.config.ConfigModule
+import io.dwak.redditslackbot.inject.module.db.DbModule
+import io.dwak.redditslackbot.inject.module.db.FirebaseModule
+import io.dwak.redditslackbot.inject.module.network.NetworkModule
 import io.dwak.redditslackbot.reddit.network.adapter.KindAdapter
 import io.dwak.redditslackbot.slack.network.SlackWebhookUrlComponentAdapter
 import retrofit2.Converter

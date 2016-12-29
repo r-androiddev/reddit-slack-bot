@@ -26,7 +26,9 @@ import javax.inject.Inject
 
 class SlackLogin @Inject constructor(private val slackBot: SlackBot) : RequestAction {
 
-  companion object { const val name = "slack-login" }
+  companion object {
+    const val name = "slack-login"
+  }
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
@@ -58,35 +60,35 @@ class SlackLogin @Inject constructor(private val slackBot: SlackBot) : RequestAc
                           form(classes = "col s12") {
                             div("row") {
                               div("input-field col s12") {
-                                input(InputType.text, name = "subreddit")
+                                input(InputType.text, name = "subreddit") { required = true }
                                 label {
                                   for_ = "subreddit"
                                   +"Subreddit (just the name, no \"/r/\")"
                                 }
                               }
                               div("input-field col s6") {
-                                input(InputType.text, name = "bot_username")
+                                input(InputType.text, name = "bot_username") { required = true }
                                 label {
                                   for_ = "bot_username"
                                   +"Bot Username"
                                 }
                               }
                               div("input-field col s6") {
-                                input(InputType.text, name = "bot_password")
+                                input(InputType.password, name = "bot_password") { required = true }
                                 label {
                                   for_ = "bot_password"
                                   +"Bot Password"
                                 }
                               }
                               div("input-field col s6") {
-                                input(InputType.text, name = "client_id")
+                                input(InputType.text, name = "client_id") { required = true }
                                 label {
                                   for_ = "client_id"
                                   +"Client Id"
                                 }
                               }
                               div("input-field col s6") {
-                                input(InputType.text, name = "client_secret")
+                                input(InputType.text, name = "client_secret") { required = true }
                                 label {
                                   for_ = "client_secret"
                                   +"Client Secret"

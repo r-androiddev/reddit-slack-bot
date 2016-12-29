@@ -1,4 +1,4 @@
-package io.dwak.redditslackbot.inject.module
+package io.dwak.redditslackbot.inject.module.db
 
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions

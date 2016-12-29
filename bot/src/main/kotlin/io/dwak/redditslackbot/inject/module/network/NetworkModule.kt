@@ -1,4 +1,4 @@
-package io.dwak.redditslackbot.inject.module
+package io.dwak.redditslackbot.inject.module.network
 
 import dagger.Module
 import dagger.Provides
@@ -15,7 +15,7 @@ class NetworkModule {
 
   @Provides
   fun interceptors(): ArrayList<Interceptor> {
-    val interceptors = arrayListOf<okhttp3.Interceptor>()
+    val interceptors = arrayListOf<Interceptor>()
     val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger(::println))
     loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
     interceptors.add(loggingInterceptor)

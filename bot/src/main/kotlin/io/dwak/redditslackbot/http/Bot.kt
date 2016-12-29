@@ -9,8 +9,7 @@ import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.SlackLogin
 import javax.inject.Inject
 
-class Bot @Inject constructor(private val actions: Map<String, @JvmSuppressWildcards RequestAction>)
-  : AppInit {
+class Bot @Inject constructor(private val actions: Map<String, @JvmSuppressWildcards RequestAction>) : AppInit {
 
   override fun create(env: Environment) {
     with(env.routingEngine()) {

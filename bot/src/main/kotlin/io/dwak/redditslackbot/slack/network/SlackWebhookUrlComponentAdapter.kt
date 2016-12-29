@@ -7,11 +7,8 @@ import me.mattlogan.auto.value.firebase.adapter.TypeAdapter
 
 @Suppress("unused")
 class SlackWebhookUrlComponentAdapter : TypeAdapter<SlackWebhookUrlComponents, String> {
-  override fun fromFirebaseValue(value: String) = fromString(value)
-  override fun toFirebaseValue(value: SlackWebhookUrlComponents) = fromComponents(value)
-
-  @FromJson fun fromJson(url: String) = fromString(url)
-  @ToJson fun toJson(value: SlackWebhookUrlComponents) = fromComponents(value)
+  @FromJson override fun fromFirebaseValue(value: String) = fromString(value)
+  @ToJson override fun toFirebaseValue(value: SlackWebhookUrlComponents) = fromComponents(value)
 
   private fun fromString(url: String): SlackWebhookUrlComponents {
     val splits = url.split("services")
