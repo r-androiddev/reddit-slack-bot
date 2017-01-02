@@ -5,6 +5,7 @@ import io.dwak.redditslackbot.reddit.model.RedditFlairResponse
 import io.dwak.redditslackbot.reddit.model.RedditListing
 import io.reactivex.Completable
 import io.reactivex.Single
+import okhttp3.ResponseBody
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -47,4 +48,7 @@ interface RedditService {
                   @Field("flair_template_id") flairTemplateId : String,
                   @Field("link") fullname: String,
                   @Field("name") username : String) : Completable
+
+  @GET("{subreddit}/wiki/slackbot")
+  fun wikiSettings(@Path("subreddit") subreddit: String): Single<ResponseBody>
 }

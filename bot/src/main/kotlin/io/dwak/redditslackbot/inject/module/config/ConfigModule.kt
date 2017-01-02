@@ -10,6 +10,7 @@ import javax.inject.Singleton
 @Singleton
 @Module(includes = arrayOf(
     FirebaseConfigModule::class,
+    RedditConfigModule::class,
     SlackConfigModule::class))
 class ConfigModule {
   @Provides @Singleton fun config(): Config = ConfigFactory.load()

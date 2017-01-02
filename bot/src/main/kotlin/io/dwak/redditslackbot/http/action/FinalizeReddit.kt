@@ -9,26 +9,25 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class CheckPosts @Inject constructor(private val redditBot: RedditBot) : RequestAction {
-
+class FinalizeReddit @Inject constructor(private val redditBot: RedditBot): RequestAction {
   companion object {
-    const val name = "check-posts"
+    const val name = "finalize-reddit"
   }
-
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       val map = req.request().payload().map { it.payloadToMap() }
-      if (!map.isPresent) {
+      if(!map.isPresent){
         future.complete("Something went wrong!")
       }
       else {
         map.ifPresent {
-          when (it["text"]) {
-            "check posts" -> redditBot.pollForPosts("${it["team_id"]}-${it["channel_id"]}")
-          }
+          val path = req.request().parameter("data").get()
+          redditBot.saveSubreddit(path, it["subreddit"]!!)
+              .subscribe {
+                future.complete("All Done!")
+              }
         }
       }
-      future.complete("Checking Posts!")
     }
   }
 }

@@ -9,14 +9,19 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface RedditLoginService {
+
   @FormUrlEncoded
   @POST("/api/v1/access_token")
-  fun getAccessToken(@Header("Authorization") authorization : String,
-                     @Header("User-Agent") userAgent : String = "RedditBot/0.1 by DWAK",
-                     @Field("grant_type") grantType : String = "password",
-                     @Field("refresh_token") refreshToken : String? = null,
-                     @Field("duration") duration : String = "permanent",
-                     @Field("username") username : String,
-                     @Field("password") password : String)
-          : Single<AuthData>
+  fun getAccessToken(@Header("Authorization") authorization: String,
+                     @Field("grant_type") grantType: String,
+                     @Field("code") code: String,
+                     @Field("redirect_uri") redirectUri: String)
+      : Single<AuthData>
+
+  @FormUrlEncoded
+  @POST("/api/v1/access_token")
+  fun getRefreshToken(@Header("Authorization") authorization: String,
+                     @Field("grant_type") grantType: String,
+                     @Field("refresh_token") refreshToken: String)
+      : Single<AuthData>
 }

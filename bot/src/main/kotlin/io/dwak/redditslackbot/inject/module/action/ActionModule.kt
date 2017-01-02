@@ -6,6 +6,7 @@ import dagger.multibindings.IntoMap
 import dagger.multibindings.StringKey
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.action.CheckPosts
+import io.dwak.redditslackbot.http.action.FinalizeReddit
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.SlackLogin
@@ -28,4 +29,8 @@ abstract class ActionModule {
   @Binds
   @IntoMap @StringKey(SlackLogin.name)
   abstract fun slackLogin(impl: SlackLogin): RequestAction
+
+  @Binds
+  @IntoMap @StringKey(FinalizeReddit.name)
+  abstract fun finalizeReddit(impl: FinalizeReddit): RequestAction
 }

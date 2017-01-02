@@ -3,6 +3,9 @@ package io.dwak.redditslackbot.http.action
 import com.spotify.apollo.RequestContext
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
+import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
+import io.dwak.redditslackbot.inject.module.config.ConfigValues
+import io.dwak.redditslackbot.reddit.RedditBot
 import io.dwak.redditslackbot.slack.SlackBot
 import kotlinx.html.ButtonType
 import kotlinx.html.FormMethod
@@ -18,17 +21,23 @@ import kotlinx.html.html
 import kotlinx.html.input
 import kotlinx.html.label
 import kotlinx.html.link
+import kotlinx.html.meta
 import kotlinx.html.script
 import kotlinx.html.stream.appendHTML
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class SlackLogin @Inject constructor(private val slackBot: SlackBot) : RequestAction {
+class SlackLogin @Inject constructor(private val slackBot: SlackBot,
+                                     private val redditBot: RedditBot,
+                                     @RedditConfig private val redditConfig: Map<String, String>) : RequestAction {
 
   companion object {
     const val name = "slack-login"
   }
+
+  private val clientId by lazy { redditConfig[ConfigValues.Reddit.CLIENT_ID]!! }
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
@@ -41,69 +50,25 @@ class SlackLogin @Inject constructor(private val slackBot: SlackBot) : RequestAc
             if (throwable != null) {
               future.complete("Something went wrong! ${throwable.message}")
             }
+
+            val state = UUID.randomUUID()
+                .toString()
+                .apply { redditBot.beginLogin(this, "${slackInfo.teamId()}-${slackInfo.channelId()}") }
+
             future.complete(StringBuilder()
                 .appendln("<!DOCTYPE html>")
                 .appendHTML()
                 .html {
                   head {
-                    link(rel = "stylesheet", href = "http://fonts.googleapis.com/icon?family=Material+Icons")
-                    link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css")
-                  }
-                  body {
-                    script(type = ScriptType.textJavaScript, src = "https://code.jquery.com/jquery-2.1.1.min.js")
-                    script(type = ScriptType.textJavaScript, src = "https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js")
-                    div("container") {
-                      form(action = "init-reddit?data=${slackInfo.teamId()}-${slackInfo.channelId()}",
-                          method = FormMethod.post) {
-                        h3 { +"${slackInfo.teamName()}: ${slackInfo.channel()}" }
-                        div("row") {
-                          form(classes = "col s12") {
-                            div("row") {
-                              div("input-field col s12") {
-                                input(InputType.text, name = "subreddit") { required = true }
-                                label {
-                                  for_ = "subreddit"
-                                  +"Subreddit (just the name, no \"/r/\")"
-                                }
-                              }
-                              div("input-field col s6") {
-                                input(InputType.text, name = "bot_username") { required = true }
-                                label {
-                                  for_ = "bot_username"
-                                  +"Bot Username"
-                                }
-                              }
-                              div("input-field col s6") {
-                                input(InputType.password, name = "bot_password") { required = true }
-                                label {
-                                  for_ = "bot_password"
-                                  +"Bot Password"
-                                }
-                              }
-                              div("input-field col s6") {
-                                input(InputType.text, name = "client_id") { required = true }
-                                label {
-                                  for_ = "client_id"
-                                  +"Client Id"
-                                }
-                              }
-                              div("input-field col s6") {
-                                input(InputType.text, name = "client_secret") { required = true }
-                                label {
-                                  for_ = "client_secret"
-                                  +"Client Secret"
-                                }
-                              }
-                              div("input-field col s12") {
-                                button(type = ButtonType.submit, classes = "btn waves-effect waves-light") {
-                                  name = "action"
-                                  +"Submit"
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
+                    //                    link(rel = "stylesheet", href = "http://fonts.googleapis.com/icon?family=Material+Icons")
+//                    link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css")
+                    meta(content = "0; url=https://www.reddit.com/api/v1/authorize?client_id=$clientId" +
+                        "&response_type=code" +
+                        "&state=$state" +
+                        "&redirect_uri=https://37b15491.ngrok.io/init-reddit" +
+                        "&duration=permanent" +
+                        "&scope=identity edit flair history modconfig modflair modlog modposts modwiki mysubreddits privatemessages read report save submit subscribe vote wikiedit wikiread") {
+                      httpEquiv = "refresh"
                     }
                   }
                 }.toString())

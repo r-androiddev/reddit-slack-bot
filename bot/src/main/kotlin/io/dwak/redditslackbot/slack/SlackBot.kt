@@ -19,6 +19,7 @@ class SlackBot @Inject constructor(private val slackService: SlackService,
                                    private val moshi: Moshi,
                                    private val dbHelper: DbHelper,
                                    private @SlackConfig val config: Map<String, String>) {
+
   fun login(code: String): Single<SlackInfo> =
       loginService.getOauth(config[ConfigValues.Slack.CLIENT_ID]!!,
           config[ConfigValues.Slack.CLIENT_SECRET]!!, code)

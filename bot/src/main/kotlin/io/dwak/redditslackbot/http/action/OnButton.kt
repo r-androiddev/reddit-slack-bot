@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class OnButton @Inject constructor(private val redditBot: RedditBot, private val slackBot: SlackBot)
+class OnButton @Inject constructor(private val redditBot: RedditBot)
   : RequestAction {
 
   companion object {
@@ -21,4 +21,5 @@ class OnButton @Inject constructor(private val redditBot: RedditBot, private val
       future.complete("Checking Posts!")
     }
   }
+
 }

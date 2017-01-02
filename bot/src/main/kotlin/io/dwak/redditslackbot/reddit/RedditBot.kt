@@ -2,6 +2,8 @@ package io.dwak.redditslackbot.reddit
 
 import com.squareup.moshi.Moshi
 import io.dwak.redditslackbot.database.DbHelper
+import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
+import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.model.RedditInfo
 import io.dwak.redditslackbot.reddit.model.T3Data
 import io.dwak.redditslackbot.reddit.model.isSelfPost
@@ -13,13 +15,18 @@ import io.dwak.redditslackbot.slack.model.SlackInfo
 import io.dwak.redditslackbot.slack.model.WebHookPayload
 import io.dwak.redditslackbot.slack.model.WebHookPayloadAction
 import io.dwak.redditslackbot.slack.model.WebHookPayloadAttachment
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
+import org.slf4j.LoggerFactory
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -29,8 +36,8 @@ import javax.inject.Singleton
 class RedditBot @Inject constructor(private val service: RedditService,
                                     private val loginService: RedditLoginService,
                                     private val slackBot: SlackBot,
-                                    private val moshi: Moshi,
-                                    private val dbHelper: DbHelper) {
+                                    private val dbHelper: DbHelper,
+                                    @RedditConfig private val redditConfig: Map<String, String>) {
 
   companion object {
     val ACTION_FLAIR = "flair"
@@ -40,63 +47,108 @@ class RedditBot @Inject constructor(private val service: RedditService,
     val ACTION_SELECT_FLAIR = "select-flair"
   }
 
-  private var basicAuth: String? = null
+  private val clientId by lazy { redditConfig[ConfigValues.Reddit.CLIENT_ID]!! }
+  private val clientSecret by lazy { redditConfig[ConfigValues.Reddit.CLIENT_SECRET]!! }
+  private val basicAuth = "Basic ${Base64.getEncoder()
+      .encodeToString(("$clientId:$clientSecret")
+          .toByteArray())}"
 
-  private val postedIds: LinkedHashMap<String, T3Data>
+  private val postedIds = hashMapOf<String, LinkedHashMap<String, T3Data>>()
 
-  private var lastCheckedTime: ZonedDateTime
+  private var lastCheckedTimes = hashMapOf<String, ZonedDateTime>()
 
   private val pollDisposables = hashMapOf<String, Disposable>()
 
-  init {
-    lastCheckedTime = ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(POST_WINDOW)
+  private val inProgressLogins = hashMapOf<String, String>()
 
-    postedIds = object : LinkedHashMap<String, T3Data>(CACHE_SIZE) {
-      override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, T3Data>?): Boolean {
-        return size >= CACHE_SIZE
-      }
-    }
+  fun beginLogin(state: String, path: String) {
+    inProgressLogins.put(state, path)
   }
 
-  fun login(subreddit: String, username: String, password: String,
-            clientId: String, clientSecret: String, path: String): Single<RedditInfo> {
-    basicAuth = "Basic ${Base64.getEncoder()
-        .encodeToString(("$clientId:$clientSecret")
-            .toByteArray())}"
-    return loginService.getAccessToken(authorization = basicAuth!!,
-        username = username,
-        password = password)
+  fun login(state: String, code: String): Single<Pair<String, RedditInfo>> {
+    return loginService.getAccessToken(basicAuth, "authorization_code", code, "https://37b15491.ngrok.io/init-reddit")
         .map {
           RedditInfo.builder()
-              .subreddit(subreddit)
               .accessToken(it.accessToken)
-              .botUsername(username)
+              .refreshToken(it.refreshToken)
               .expiresIn(it.expiresIn)
+              .lastTokenRefresh(Instant.now())
               .scope(it.scope)
               .tokenType(it.tokenType)
               .build()
         }
-        .doOnSuccess { dbHelper.saveRedditInfo(path, it) }
-        .doOnSuccess { pollForPosts(path) }
+        .map {
+          inProgressLogins[state]!! to it
+        }
+        .doOnSuccess {
+          val (path, redditInfo) = it
+          dbHelper.saveRedditInfo(path, redditInfo)
+          inProgressLogins.remove(state)
+        }
+  }
+
+  fun refreshTokenIfNeeded(path: String): Single<RedditInfo> {
+    return dbHelper.getRedditInfo(path)
+        .flatMap { info ->
+          if (info.lastTokenRefresh().toEpochMilli() + info.expiresIn() < Instant.now().toEpochMilli()) {
+            loginService.getRefreshToken(basicAuth, "refresh_token", info.refreshToken())
+                .map {
+                  info.toBuilder()
+                      .accessToken(it.accessToken)
+                      .tokenType(it.tokenType)
+                      .expiresIn(it.expiresIn)
+                      .lastTokenRefresh(Instant.now())
+                      .scope(it.scope)
+                      .build()
+                }
+          }
+          else {
+            Single.just(info)
+          }
+        }
+  }
+
+  fun saveSubreddit(path: String, subreddit: String): Completable {
+    return dbHelper.getRedditInfo(path)
+        .map { it.withSubreddit(subreddit) }
+        .map {
+          dbHelper.saveRedditInfo(path, it)
+        }
+        .doOnSuccess {
+          postedIds[path] = object : LinkedHashMap<String, T3Data>(CACHE_SIZE) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, T3Data>?): Boolean {
+              return size >= CACHE_SIZE
+            }
+          }
+          pollForPosts(path)
+          lastCheckedTimes.put(path, ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(POST_WINDOW))
+        }
+        .toCompletable()
   }
 
   fun pollForPosts(path: String) {
     pollDisposables.put(path,
-        Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path),
+        Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
             BiFunction<SlackInfo, RedditInfo, Pair<SlackInfo, RedditInfo>> { s, r -> s to r })
             .subscribe { infos, throwable ->
+              val (slackInfo, redditInfo) = infos
               Observable.interval(0, 5L, TimeUnit.MINUTES)
-                  .flatMapSingle { service.unmoderated("bearer ${infos.second.accessToken()}", infos.second.subreddit()) }
+                  .flatMapSingle { service.unmoderated("bearer ${redditInfo.accessToken()}", redditInfo.subreddit()!!) }
                   .map { it.data }
                   .flatMap { Observable.fromArray(*it.children) }
                   .map { it.data }
                   .filter {
+                    var lastCheckedTime = lastCheckedTimes[path]
                     val createdUtc = ZonedDateTime.of(LocalDateTime.ofEpochSecond(it.created_utc, 0, ZoneOffset.UTC),
                         ZoneOffset.UTC)
+                    if (lastCheckedTime == null) {
+                      lastCheckedTime = ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(POST_WINDOW)
+                      lastCheckedTimes.put(path, lastCheckedTime)
+                    }
                     createdUtc.isAfter(lastCheckedTime)
                   }
-                  .filter { !postedIds.containsKey(it.id) }
-                  .doOnNext { postedIds.put(it.id, it) }
+                  .filter { postedIds[path]?.containsKey(it.id) ?: true }
+                  .doOnNext { postedIds[path]?.put(it.id, it) }
                   .map {
                     val postBody = if (it.isSelfPost()) it.selftext else it.url
 
@@ -129,9 +181,17 @@ class RedditBot @Inject constructor(private val service: RedditService,
                   }
                   .flatMapCompletable { slackBot.postToChannel(path, payload = it) }
                   .subscribe {
-                    lastCheckedTime = ZonedDateTime.now(ZoneOffset.UTC)
+                    lastCheckedTimes[path] = ZonedDateTime.now(ZoneOffset.UTC)
                   }
             })
+  }
+
+  fun removePost() {
+
+  }
+
+  fun flairPost() {
+
   }
 
 }
