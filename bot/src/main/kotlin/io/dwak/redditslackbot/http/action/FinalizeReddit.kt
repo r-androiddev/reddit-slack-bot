@@ -9,14 +9,15 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class FinalizeReddit @Inject constructor(private val redditBot: RedditBot): RequestAction {
-  companion object {
-    const val name = "finalize-reddit"
-  }
+class FinalizeReddit @Inject constructor(private val redditBot: RedditBot) : RequestAction {
+
+  override val name = "finalize-reddit"
+  override val method = "POST"
+
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
       val map = req.request().payload().map { it.payloadToMap() }
-      if(!map.isPresent){
+      if (!map.isPresent) {
         future.complete("Something went wrong!")
       }
       else {

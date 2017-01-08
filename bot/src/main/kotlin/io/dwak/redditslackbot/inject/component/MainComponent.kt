@@ -3,6 +3,7 @@ package io.dwak.redditslackbot.inject.component
 import dagger.Component
 import io.dwak.redditslackbot.http.Bot
 import io.dwak.redditslackbot.http.RequestAction
+import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.FirebaseConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 interface MainComponent {
   fun bot(): Bot
 
-  fun requestActions(): Map<String, RequestAction>
+  @AppConfig
+  fun appConfig(): Map<String, String>
 
   @RedditConfig
   fun redditConfig(): Map<String, String>

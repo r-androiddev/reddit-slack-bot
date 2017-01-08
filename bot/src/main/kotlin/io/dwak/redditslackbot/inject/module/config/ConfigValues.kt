@@ -3,6 +3,11 @@ package io.dwak.redditslackbot.inject.module.config
 sealed class ConfigValues {
   abstract val PATH: String
 
+  object Application: ConfigValues() {
+    override val PATH: String = "application"
+    const val HOST_URL = "host_url"
+  }
+
   object Firebase : ConfigValues() {
     override val PATH = "firebase"
     const val ACCOUNT_KEY_PATH = "account_key_path"

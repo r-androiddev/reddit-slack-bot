@@ -1,6 +1,6 @@
 package io.dwak.redditslackbot.reddit.model
 
-import io.dwak.redditslackbot.SuspicionTag
+import io.dwak.redditslackbot.reddit.model.SuspicionTag
 
 enum class Kind(val kind : String) {
   LISTING("Listing"),

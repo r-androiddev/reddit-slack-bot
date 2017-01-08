@@ -23,6 +23,7 @@ import javax.inject.Singleton
     FirebaseModule::class,
     NetworkModule::class))
 class MainModule {
+
   @Provides
   @Singleton
   fun moshi(): Moshi = Moshi.Builder()

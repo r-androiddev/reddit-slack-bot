@@ -3,26 +3,14 @@ package io.dwak.redditslackbot.http.action
 import com.spotify.apollo.RequestContext
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
+import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.RedditBot
 import io.dwak.redditslackbot.slack.SlackBot
-import kotlinx.html.ButtonType
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
-import kotlinx.html.ScriptType
-import kotlinx.html.body
-import kotlinx.html.button
-import kotlinx.html.div
-import kotlinx.html.form
-import kotlinx.html.h3
 import kotlinx.html.head
 import kotlinx.html.html
-import kotlinx.html.input
-import kotlinx.html.label
-import kotlinx.html.link
 import kotlinx.html.meta
-import kotlinx.html.script
 import kotlinx.html.stream.appendHTML
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -31,13 +19,14 @@ import javax.inject.Inject
 
 class SlackLogin @Inject constructor(private val slackBot: SlackBot,
                                      private val redditBot: RedditBot,
+                                     @AppConfig private val appConfig: Map<String, String>,
                                      @RedditConfig private val redditConfig: Map<String, String>) : RequestAction {
 
-  companion object {
-    const val name = "slack-login"
-  }
+  override val name = "slack-login"
+  override val method = "GET"
 
   private val clientId by lazy { redditConfig[ConfigValues.Reddit.CLIENT_ID]!! }
+  private val hostUrl by lazy { appConfig[ConfigValues.Application.HOST_URL] }
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
@@ -60,12 +49,10 @@ class SlackLogin @Inject constructor(private val slackBot: SlackBot,
                 .appendHTML()
                 .html {
                   head {
-                    //                    link(rel = "stylesheet", href = "http://fonts.googleapis.com/icon?family=Material+Icons")
-//                    link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css")
                     meta(content = "0; url=https://www.reddit.com/api/v1/authorize?client_id=$clientId" +
                         "&response_type=code" +
                         "&state=$state" +
-                        "&redirect_uri=https://37b15491.ngrok.io/init-reddit" +
+                        "&redirect_uri=$hostUrl/reddit-login" +
                         "&duration=permanent" +
                         "&scope=identity edit flair history modconfig modflair modlog modposts modwiki mysubreddits privatemessages read report save submit subscribe vote wikiedit wikiread") {
                       httpEquiv = "refresh"

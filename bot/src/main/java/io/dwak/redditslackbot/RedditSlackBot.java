@@ -9,9 +9,11 @@ public class RedditSlackBot {
     private static final boolean DEBUG = true;
 
     public static void main(String[] args) throws LoadingException {
-        MainComponent mainComponent = DaggerMainComponent.create();
+        final MainComponent mainComponent = DaggerMainComponent.create();
 
         if (DEBUG) {
+            System.out.println(mainComponent.appConfig());
+            System.out.println(mainComponent.redditConfig());
             System.out.println(mainComponent.slackConfig());
             System.out.println(mainComponent.firebaseConfig());
         }

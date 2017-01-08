@@ -2,35 +2,34 @@ package io.dwak.redditslackbot.inject.module.action
 
 import dagger.Binds
 import dagger.Module
-import dagger.multibindings.IntoMap
-import dagger.multibindings.StringKey
+import dagger.multibindings.IntoSet
 import io.dwak.redditslackbot.http.RequestAction
-import io.dwak.redditslackbot.http.action.CheckPosts
 import io.dwak.redditslackbot.http.action.FinalizeReddit
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.SlackLogin
+import io.dwak.redditslackbot.http.action.SlashCommand
 
 @Module
 abstract class ActionModule {
 
   @Binds
-  @IntoMap @StringKey(CheckPosts.name)
-  abstract fun checkPosts(impl: CheckPosts): RequestAction
+  @IntoSet
+  abstract fun slashCommand(impl: SlashCommand): RequestAction
 
   @Binds
-  @IntoMap @StringKey(OnButton.name)
+  @IntoSet
   abstract fun onButton(impl: OnButton): RequestAction
 
   @Binds
-  @IntoMap @StringKey(RedditLogin.name)
+  @IntoSet
   abstract fun redditLogin(impl: RedditLogin): RequestAction
 
   @Binds
-  @IntoMap @StringKey(SlackLogin.name)
+  @IntoSet
   abstract fun slackLogin(impl: SlackLogin): RequestAction
 
   @Binds
-  @IntoMap @StringKey(FinalizeReddit.name)
+  @IntoSet
   abstract fun finalizeReddit(impl: FinalizeReddit): RequestAction
 }

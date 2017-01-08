@@ -1,7 +1,8 @@
 package io.dwak.redditslackbot.reddit
 
-import com.squareup.moshi.Moshi
 import io.dwak.redditslackbot.database.DbHelper
+import io.dwak.redditslackbot.http.action.RedditLogin
+import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.model.RedditInfo
@@ -20,13 +21,10 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -37,6 +35,7 @@ class RedditBot @Inject constructor(private val service: RedditService,
                                     private val loginService: RedditLoginService,
                                     private val slackBot: SlackBot,
                                     private val dbHelper: DbHelper,
+                                    @AppConfig private val appConfig: Map<String, String>,
                                     @RedditConfig private val redditConfig: Map<String, String>) {
 
   companion object {
@@ -49,16 +48,14 @@ class RedditBot @Inject constructor(private val service: RedditService,
 
   private val clientId by lazy { redditConfig[ConfigValues.Reddit.CLIENT_ID]!! }
   private val clientSecret by lazy { redditConfig[ConfigValues.Reddit.CLIENT_SECRET]!! }
-  private val basicAuth = "Basic ${Base64.getEncoder()
-      .encodeToString(("$clientId:$clientSecret")
-          .toByteArray())}"
+  private val basicAuth by lazy {
+    "Basic ${Base64.getEncoder().encodeToString(("$clientId:$clientSecret").toByteArray())}"
+  }
+  private val hostUrl by lazy { appConfig[ConfigValues.Application.HOST_URL] }
 
   private val postedIds = hashMapOf<String, LinkedHashMap<String, T3Data>>()
-
   private var lastCheckedTimes = hashMapOf<String, ZonedDateTime>()
-
   private val pollDisposables = hashMapOf<String, Disposable>()
-
   private val inProgressLogins = hashMapOf<String, String>()
 
   fun beginLogin(state: String, path: String) {
@@ -66,7 +63,7 @@ class RedditBot @Inject constructor(private val service: RedditService,
   }
 
   fun login(state: String, code: String): Single<Pair<String, RedditInfo>> {
-    return loginService.getAccessToken(basicAuth, "authorization_code", code, "https://37b15491.ngrok.io/init-reddit")
+    return loginService.getAccessToken(basicAuth, "authorization_code", code, "$hostUrl/reddit-login")
         .map {
           RedditInfo.builder()
               .accessToken(it.accessToken)
@@ -77,17 +74,14 @@ class RedditBot @Inject constructor(private val service: RedditService,
               .tokenType(it.tokenType)
               .build()
         }
-        .map {
-          inProgressLogins[state]!! to it
-        }
+        .map { inProgressLogins[state]!! to it }
         .doOnSuccess {
-          val (path, redditInfo) = it
-          dbHelper.saveRedditInfo(path, redditInfo)
+          dbHelper.saveRedditInfo(it.first, it.second)
           inProgressLogins.remove(state)
         }
   }
 
-  fun refreshTokenIfNeeded(path: String): Single<RedditInfo> {
+  private fun refreshTokenIfNeeded(path: String): Single<RedditInfo> {
     return dbHelper.getRedditInfo(path)
         .flatMap { info ->
           if (info.lastTokenRefresh().toEpochMilli() + info.expiresIn() < Instant.now().toEpochMilli()) {
@@ -101,6 +95,7 @@ class RedditBot @Inject constructor(private val service: RedditService,
                       .scope(it.scope)
                       .build()
                 }
+                .doOnSuccess { dbHelper.saveRedditInfo(path, it) }
           }
           else {
             Single.just(info)
@@ -111,9 +106,7 @@ class RedditBot @Inject constructor(private val service: RedditService,
   fun saveSubreddit(path: String, subreddit: String): Completable {
     return dbHelper.getRedditInfo(path)
         .map { it.withSubreddit(subreddit) }
-        .map {
-          dbHelper.saveRedditInfo(path, it)
-        }
+        .map { dbHelper.saveRedditInfo(path, it) }
         .doOnSuccess {
           postedIds[path] = object : LinkedHashMap<String, T3Data>(CACHE_SIZE) {
             override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, T3Data>?): Boolean {

@@ -5,6 +5,8 @@ import java.util.concurrent.CompletableFuture
 
 
 interface RequestAction {
+  val name: String
+  val method: String
   val action: (RequestContext) -> CompletableFuture<String>
 }
 

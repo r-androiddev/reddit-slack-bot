@@ -1,4 +1,4 @@
-package io.dwak.redditslackbot
+package io.dwak.redditslackbot.reddit.model
 
 enum class SuspicionTag(val tag : String) {
   QUESTION("?"),

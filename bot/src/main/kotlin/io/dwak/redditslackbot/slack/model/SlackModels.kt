@@ -19,7 +19,7 @@ data class SlackWebhookUrlComponents(val id1 : String, val id2 : String, val id3
 
 
 data class WebHookPayload(val text : String,
-                          val attachments : List<WebHookPayloadAttachment>)
+                          val attachments : List<WebHookPayloadAttachment>? = null)
 
 data class WebHookPayloadAttachment(val text : String,
                                     val fallback : String,
@@ -31,3 +31,16 @@ data class WebHookPayloadAction(val name : String,
                                 val text : String,
                                 val type : String = "button",
                                 val value : String)
+
+
+data class SlackMessagePayload(val actions : List<SlackMessagePayloadAction>,
+                               @Json(name = "callback_id") val callbackId : String,
+                               val token : String,
+                               @Json(name = "original_message") val originalMessage : WebHookPayload,
+                               @Json(name = "response_url") val responseUrl : String,
+                               val user : SlackMessagePayloadUser)
+
+data class SlackMessagePayloadAction(val name : String,
+                                     val value  : String)
+
+data class SlackMessagePayloadUser(val id : String, val name : String)
