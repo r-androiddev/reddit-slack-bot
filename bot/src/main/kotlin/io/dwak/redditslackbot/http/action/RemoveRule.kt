@@ -23,8 +23,7 @@ class RemoveRule @Inject constructor(dbHelper: DbHelper) : RequestAction {
           val path = "${params["team_id"]}-${params["channel_id"]}"
           val id = params["text"]
           if (id != null) {
-            dbHelper.removeRule(path, id)
-                .subscribe { future.complete("Removed $id") }
+            dbHelper.removeRule(path, id).subscribe { future.complete("Removed $id") }
           }
           else {
             future.complete("id not found!")
