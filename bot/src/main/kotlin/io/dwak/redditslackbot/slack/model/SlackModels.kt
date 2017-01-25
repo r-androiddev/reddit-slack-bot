@@ -32,15 +32,22 @@ data class WebHookPayloadAction(val name : String,
                                 val type : String = "button",
                                 val value : String)
 
+enum class ButtonAction(val value: String) {
+  ACTION_FLAIR("flair"),
+  ACTION_REMOVE("remove"),
+  ACTION_SELECT_FLAIR("select-flair")
+}
 
 data class SlackMessagePayload(val actions : List<SlackMessagePayloadAction>,
                                @Json(name = "callback_id") val callbackId : String,
                                val token : String,
                                @Json(name = "original_message") val originalMessage : WebHookPayload,
                                @Json(name = "response_url") val responseUrl : String,
-                               val user : SlackMessagePayloadUser)
+                               val user : SlackMessagePayloadInfo,
+                               val team: SlackMessagePayloadInfo,
+                               val channel: SlackMessagePayloadInfo)
 
 data class SlackMessagePayloadAction(val name : String,
                                      val value  : String)
 
-data class SlackMessagePayloadUser(val id : String, val name : String)
+data class SlackMessagePayloadInfo(val id : String, val name : String)

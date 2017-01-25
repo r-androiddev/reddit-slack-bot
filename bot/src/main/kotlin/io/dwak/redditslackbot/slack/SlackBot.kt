@@ -5,6 +5,7 @@ import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.slack.model.SlackInfo
+import io.dwak.redditslackbot.slack.model.SlackWebhookUrlComponents
 import io.dwak.redditslackbot.slack.model.WebHookPayload
 import io.dwak.redditslackbot.slack.network.SlackOauthService
 import io.dwak.redditslackbot.slack.network.SlackService
@@ -45,5 +46,20 @@ class SlackBot @Inject constructor(private val slackService: SlackService,
               it.second)
         }
         .toCompletable()
+  }
+
+  fun updateMessage(responseUrl: String, payload: WebHookPayload): Completable {
+    return Single.fromCallable { moshi.adapter(WebHookPayload::class.java).toJson(payload) }
+        .map { getWebHookUrlComponents(responseUrl) to it }
+        .flatMapCompletable {
+          val (url, webhookPayload) = it
+          slackService.respondToMessage(url.id1, url.id2, url.id3, webhookPayload)
+        }
+  }
+
+  private fun getWebHookUrlComponents(url: String): SlackWebhookUrlComponents {
+    val splits = url.split("actions")
+    val ids = splits[1].split("/")
+    return SlackWebhookUrlComponents(ids[1], ids[2], ids[3])
   }
 }

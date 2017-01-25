@@ -8,7 +8,9 @@ import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.RedditBot
 import io.dwak.redditslackbot.slack.SlackBot
+import io.dwak.redditslackbot.slack.model.ButtonAction
 import io.dwak.redditslackbot.slack.model.SlackMessagePayload
+import io.reactivex.Completable
 import io.reactivex.Observable
 import java.net.URLDecoder
 import java.util.concurrent.CompletableFuture
@@ -27,7 +29,7 @@ class OnButton @Inject constructor(private val redditBot: RedditBot,
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
-      val responsePayloadObservable = Observable.just(it.request().payload().get().utf8())
+      Observable.just(it.request().payload().get().utf8())
           .map { it.substring(8) } //Slack prepends payload with `payload=` thanks Slack.
           .map { URLDecoder.decode(it, "UTF-8") }
           .map {
@@ -36,8 +38,17 @@ class OnButton @Inject constructor(private val redditBot: RedditBot,
                 .fromJson(it)
           }
           .filter { it.token == verificationToken }
-          .share()
-      future.complete("Checking Posts!")
+          .flatMapCompletable {
+            val path = "${it.team.id}-${it.channel.id}"
+            when(it.actions[0].value) {
+              ButtonAction.ACTION_REMOVE.value -> redditBot.selectRemovalReason(path, it)
+              ButtonAction.ACTION_FLAIR.value -> redditBot.flairPost(path, it)
+              ButtonAction.ACTION_SELECT_FLAIR.value -> redditBot.selectFlair(path, it)
+              else -> Completable.complete()
+            }
+          }
+          .subscribe()
+      future.complete("")
     }
   }
 

@@ -13,17 +13,13 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class SlashCommand @Inject constructor(redditBotLazy: Lazy<RedditBot>,
-                                       slackBotLazy: Lazy<SlackBot>,
-                                       dbHelperLazy: Lazy<DbHelper>)
+class SlashCommand @Inject constructor(private val redditBot: Lazy<RedditBot>,
+                                       private val slackBot: Lazy<SlackBot>,
+                                       private val dbHelper: Lazy<DbHelper>)
   : RequestAction {
 
   override val name = "slash-command"
   override val method = "POST"
-
-  private val redditBot by lazy { redditBotLazy.get() }
-  private val slackBot by lazy { slackBotLazy.get() }
-  private val dbHelper by lazy { dbHelperLazy.get() }
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
@@ -35,10 +31,10 @@ class SlashCommand @Inject constructor(redditBotLazy: Lazy<RedditBot>,
       else {
         map.ifPresent { params: Map<String, String> ->
           val path = "${params["team_id"]}-${params["channel_id"]}"
-          when (params["text"]) {
-            "check" -> responseMessage = check(path)
-            "info" -> responseMessage = info(path)
-            else -> responseMessage = "Sorry, can't handle that"
+          responseMessage = when (params["text"]) {
+            "check" -> check(path)
+            "info" -> info(path)
+            else -> "Sorry, can't handle that"
           }
         }
       }
@@ -47,14 +43,14 @@ class SlashCommand @Inject constructor(redditBotLazy: Lazy<RedditBot>,
   }
 
   fun check(path: String): String {
-    redditBot.pollForPosts(path)
+    redditBot.get().pollForPosts(path)
     return "Checking Posts!"
   }
 
   fun info(path: String): String {
-    dbHelper.getSlackInfo(path)
+    dbHelper.get().getSlackInfo(path)
         .flatMap { slackInfo ->
-          dbHelper.getRedditInfo(path)
+          dbHelper.get().getRedditInfo(path)
               .map { slackInfo to it }
         }
         .map { slackRedditPair ->
@@ -66,7 +62,7 @@ class SlashCommand @Inject constructor(redditBotLazy: Lazy<RedditBot>,
               "*Reddit*\n" +
               "Subreddit: ${redditInfo.subreddit()}")
         }
-        .flatMapCompletable { slackBot.postToChannel(path, it) }
+        .flatMapCompletable { slackBot.get().postToChannel(path, it) }
         .subscribe()
     return "Gathering bits"
   }

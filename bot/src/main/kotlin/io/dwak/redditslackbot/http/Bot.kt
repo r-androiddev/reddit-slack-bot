@@ -15,4 +15,6 @@ class Bot @Inject constructor(private val actions: Set<@JvmSuppressWildcards Req
   override fun create(env: Environment) = actions.forEach {
     env.routingEngine().registerAutoRoute(async(it.method, "/${it.name}", it.action))
   }
+
 }
+

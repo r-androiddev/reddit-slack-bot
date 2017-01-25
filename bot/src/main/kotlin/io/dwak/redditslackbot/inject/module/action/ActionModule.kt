@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoSet
 import io.dwak.redditslackbot.http.RequestAction
+import io.dwak.redditslackbot.http.action.AddRule
 import io.dwak.redditslackbot.http.action.FinalizeReddit
+import io.dwak.redditslackbot.http.action.GetRules
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.SlackLogin
@@ -32,4 +34,12 @@ abstract class ActionModule {
   @Binds
   @IntoSet
   abstract fun finalizeReddit(impl: FinalizeReddit): RequestAction
+
+  @Binds
+  @IntoSet
+  abstract fun addRule(impl: AddRule): RequestAction
+
+  @Binds
+  @IntoSet
+  abstract fun getRules(impl: GetRules): RequestAction
 }
