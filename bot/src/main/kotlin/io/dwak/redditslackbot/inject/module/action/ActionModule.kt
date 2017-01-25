@@ -9,6 +9,7 @@ import io.dwak.redditslackbot.http.action.FinalizeReddit
 import io.dwak.redditslackbot.http.action.GetRules
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
+import io.dwak.redditslackbot.http.action.RemoveRule
 import io.dwak.redditslackbot.http.action.SlackLogin
 import io.dwak.redditslackbot.http.action.SlashCommand
 
@@ -42,4 +43,7 @@ abstract class ActionModule {
   @Binds
   @IntoSet
   abstract fun getRules(impl: GetRules): RequestAction
+
+  @Binds @IntoSet
+  abstract fun removeRule(impl: RemoveRule): RequestAction
 }

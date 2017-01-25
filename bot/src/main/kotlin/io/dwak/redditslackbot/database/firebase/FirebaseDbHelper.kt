@@ -163,4 +163,18 @@ class FirebaseDbHelper @Inject constructor(private val firebaseDatabase: Firebas
           })
     }
   }
+
+  override fun removeRule(path: String, id: String): Completable {
+    return Completable.create { emitter ->
+      firebaseDatabase.getReference(hashForRefRoot(path))
+          .child("rules")
+          .child(id)
+          .removeValue { databaseError, databaseReference ->
+            when (databaseError) {
+              null -> emitter.onComplete()
+              else -> emitter.onError(databaseError?.toException())
+            }
+          }
+    }
+  }
 }

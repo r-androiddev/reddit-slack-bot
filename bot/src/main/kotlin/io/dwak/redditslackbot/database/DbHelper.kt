@@ -30,4 +30,6 @@ interface DbHelper {
   fun addRule(path: String, rule: Rule): Completable
 
   fun getRules(path: String): Single<List<Rule>>
+
+  fun removeRule(path: String, id: String): Completable
 }
