@@ -5,13 +5,13 @@ import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.extension.payloadToMap
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
-import io.dwak.redditslackbot.reddit.model.Rule
+import io.dwak.redditslackbot.reddit.model.CannedResponse
 import java.net.URLDecoder
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
-class AddRule @Inject constructor(val dbHelper: DbHelper) : RequestAction {
-  override val name = "add-rule"
+class AddCannedResponse @Inject constructor(val dbHelper: DbHelper) : RequestAction {
+  override val name = "add-canned-response"
   override val method = "POST"
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
@@ -33,8 +33,8 @@ class AddRule @Inject constructor(val dbHelper: DbHelper) : RequestAction {
             responseMessage = "Something went wrong, check syntax!"
           }
           else {
-            dbHelper.addRule(path, Rule(ruleStringList[0], ruleStringList[1], ruleStringList[2]))
-            responseMessage = "Saving new rule!"
+            dbHelper.addCannedResponse(path, CannedResponse(ruleStringList[0], ruleStringList[1], ruleStringList[2]))
+            responseMessage = "Saving ${ruleStringList[0]}!"
           }
         }
       }

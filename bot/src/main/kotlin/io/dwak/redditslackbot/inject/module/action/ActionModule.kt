@@ -4,12 +4,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoSet
 import io.dwak.redditslackbot.http.RequestAction
-import io.dwak.redditslackbot.http.action.AddRule
+import io.dwak.redditslackbot.http.action.AddCannedResponse
 import io.dwak.redditslackbot.http.action.FinalizeReddit
-import io.dwak.redditslackbot.http.action.GetRules
+import io.dwak.redditslackbot.http.action.GetCannedResponses
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
-import io.dwak.redditslackbot.http.action.RemoveRule
+import io.dwak.redditslackbot.http.action.RemoveCannedResponse
 import io.dwak.redditslackbot.http.action.SlackLogin
 import io.dwak.redditslackbot.http.action.SlashCommand
 
@@ -38,12 +38,12 @@ abstract class ActionModule {
 
   @Binds
   @IntoSet
-  abstract fun addRule(impl: AddRule): RequestAction
+  abstract fun addRule(impl: AddCannedResponse): RequestAction
 
   @Binds
   @IntoSet
-  abstract fun getRules(impl: GetRules): RequestAction
+  abstract fun getRules(impl: GetCannedResponses): RequestAction
 
   @Binds @IntoSet
-  abstract fun removeRule(impl: RemoveRule): RequestAction
+  abstract fun removeRule(impl: RemoveCannedResponse): RequestAction
 }

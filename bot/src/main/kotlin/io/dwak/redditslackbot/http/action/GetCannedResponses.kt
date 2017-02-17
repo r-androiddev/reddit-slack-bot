@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class GetRules @Inject constructor(val dbHelper: DbHelper) : RequestAction {
-  override val name = "get-rules"
+class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper) : RequestAction {
+  override val name = "get-canned-responses"
   override val method = "POST"
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
@@ -21,8 +21,8 @@ class GetRules @Inject constructor(val dbHelper: DbHelper) : RequestAction {
       else {
         map.ifPresent { params: Map<String, String> ->
           val path = "${params["team_id"]}-${params["channel_id"]}"
-          dbHelper.getRules(path)
-              .subscribe { ruleList, t ->
+          dbHelper.getCannedResponses(path)
+              .subscribe { ruleList, _ ->
                 future.complete(ruleList.toString())
               }
         }

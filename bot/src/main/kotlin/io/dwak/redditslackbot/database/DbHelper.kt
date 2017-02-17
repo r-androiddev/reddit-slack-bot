@@ -1,7 +1,7 @@
 package io.dwak.redditslackbot.database
 
 import io.dwak.redditslackbot.reddit.model.RedditInfo
-import io.dwak.redditslackbot.reddit.model.Rule
+import io.dwak.redditslackbot.reddit.model.CannedResponse
 import io.dwak.redditslackbot.slack.model.SlackInfo
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -27,9 +27,11 @@ interface DbHelper {
 
   fun setLastCheckedTime(path: String, time: ZonedDateTime): Completable
 
-  fun addRule(path: String, rule: Rule): Completable
+  fun addCannedResponse(path: String, rule: CannedResponse): Completable
 
-  fun getRules(path: String): Single<List<Rule>>
+  fun getCannedResponses(path: String): Single<List<CannedResponse>>
+
+  fun getCannedResponse(path: String, key: String): Single<CannedResponse>
 
   fun removeRule(path: String, id: String): Completable
 }

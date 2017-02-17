@@ -12,6 +12,8 @@ import io.dwak.redditslackbot.slack.model.ButtonAction
 import io.dwak.redditslackbot.slack.model.SlackMessagePayload
 import io.reactivex.Completable
 import io.reactivex.Observable
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.URLDecoder
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
@@ -29,7 +31,7 @@ class OnButton @Inject constructor(private val redditBot: RedditBot,
 
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->
-      Observable.just(it.request().payload().get().utf8())
+      Observable.just(req.request().payload().get().utf8())
           .map { it.substring(8) } //Slack prepends payload with `payload=` thanks Slack.
           .map { URLDecoder.decode(it, "UTF-8") }
           .map {
@@ -38,12 +40,22 @@ class OnButton @Inject constructor(private val redditBot: RedditBot,
                 .fromJson(it)
           }
           .filter { it.token == verificationToken }
-          .flatMapCompletable {
-            val path = "${it.team.id}-${it.channel.id}"
-            when(it.actions[0].value) {
-              ButtonAction.ACTION_REMOVE.value -> redditBot.selectRemovalReason(path, it)
-              ButtonAction.ACTION_FLAIR.value -> redditBot.flairPost(path, it)
-              ButtonAction.ACTION_SELECT_FLAIR.value -> redditBot.selectFlair(path, it)
+          .flatMapCompletable { payload ->
+            val path = "${payload.team.id}-${payload.channel.id}"
+            val payloadAction = payload.actions[0]
+            when {
+              payloadAction.value == ButtonAction.ACTION_BEGIN_REMOVE.value -> {
+                redditBot.selectRemovalReason(path, payload)
+              }
+              payloadAction.value == ButtonAction.ACTION_FLAIR.value -> {
+                redditBot.flairPost(path, payload)
+              }
+              payloadAction.value == ButtonAction.ACTION_SELECT_FLAIR.value -> {
+                redditBot.selectFlair(path, payload)
+              }
+              payloadAction.value.contains(ButtonAction.ACTION_REMOVAL.value) -> {
+                redditBot.removePost(path, payload)
+              }
               else -> Completable.complete()
             }
           }

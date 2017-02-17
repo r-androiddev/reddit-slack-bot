@@ -7,3 +7,5 @@ bot/src/main/resources/*.json
 *.iml
 
 .gradle
+
+local.properties

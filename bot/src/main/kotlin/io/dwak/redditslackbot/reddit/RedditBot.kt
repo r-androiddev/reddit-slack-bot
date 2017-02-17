@@ -126,15 +126,16 @@ class RedditBot @Inject constructor(private val service: RedditService,
                             WebHookPayloadAttachment(
                                 "Author: <https://www.reddit.com/u/${it.author}|${it.author}>" +
                                     "\n<https://www.reddit.com${it.permalink}|Post Link>" +
+                                    "\n URL: ${it.url ?: "self-post"}" +
                                     "\nID: ${it.id}" +
                                     "\nPost Body: $postBody",
                                 "can't remove",
                                 it.id,
                                 "default",
-                                listOf(WebHookPayloadAction(ButtonAction.ACTION_REMOVE.value,
+                                listOf(WebHookPayloadAction(ButtonAction.ACTION_BEGIN_REMOVE.value,
                                     "Remove",
                                     "button",
-                                    ButtonAction.ACTION_REMOVE.value),
+                                    ButtonAction.ACTION_BEGIN_REMOVE.value),
                                     WebHookPayloadAction(ButtonAction.ACTION_FLAIR.value,
                                         "Flair",
                                         "button",
@@ -153,7 +154,7 @@ class RedditBot @Inject constructor(private val service: RedditService,
   }
 
   fun selectRemovalReason(path: String, payload: SlackMessagePayload): Completable {
-    return dbHelper.getRules(path)
+    return dbHelper.getCannedResponses(path)
         .map { it to payload }
         .map {
           val (rules, p) = it
@@ -161,7 +162,8 @@ class RedditBot @Inject constructor(private val service: RedditService,
           val originalAttachment = originalMessage.attachments!![0]
           val newActionsList = arrayListOf<WebHookPayloadAction>()
           rules.forEach {
-            newActionsList.add(WebHookPayloadAction(it.title, it.title, value = it.id))
+            newActionsList.add(WebHookPayloadAction(it.title, it.title,
+                value = "${ButtonAction.ACTION_REMOVAL}_${it.id}"))
           }
           val newMessage = originalMessage.copy(attachments =
           listOf(originalAttachment.copy(actions = newActionsList)))
@@ -170,7 +172,47 @@ class RedditBot @Inject constructor(private val service: RedditService,
         .flatMapCompletable { slackBot.updateMessage(it.first, it.second) }
   }
 
-  fun removePost(): Completable {
+  fun removePost(path: String, payload: SlackMessagePayload): Completable {
+//    dbHelper.getCannedResponses(path)
+//        .map { it to payload }
+//        .flatMapCompletable {
+//          responseSlackMessagePayloadPair : Pair<List<io.dwak.redditslackbot.reddit.model.CannedResponse>, SlackMessagePayload> ->
+//          val fullName = "t3_${responseSlackMessagePayloadPair.second.callbackId}"
+//          val isSpam = responseSlackMessagePayloadPair.first.displayName == "Spam"
+//          val removePostObservable = service.removePost(fullName, isSpam)
+//          if (isSpam) {
+//            removePostObservable.andThen {
+//              responseSlackMessagePayloadPair
+//            }
+//          }
+//          else {
+//            removePostObservable
+//                .andThen {
+//                  service.postComment(thingId = fullName,
+//                      text = responseSlackMessagePayloadPair.first.)
+//                }
+//                .andThen {
+//                  service.distinguish(id = it.json.data.things[0].data.name)
+//                }
+//                .andThen {
+//                  responseSlackMessagePayloadPair
+//                }
+//          }
+//        }
+//        .map {
+//          val originalMessage = it.second.originalMessage
+//          val newMessage = originalMessage.copy(attachments = listOf(
+//              WebHookPayloadAttachment(text = "\nRemoved by ${it.second.user.name} for ${it.first.displayName}!"
+//                  + "\n${originalMessage.attachments[0].text}",
+//                  fallback = "Removed!",
+//                  callback_id = it.second.callbackId,
+//                  actions = emptyList())))
+//          Pair(it.second.responseUrl, newMessage)
+//        }
+//        .map(payloadToJson())
+//        .map(getWebHookUrlComponents())
+//        .flatMap(respondToSlackMessage())
+//        .subscribe { println("Done!") }
     return Completable.complete()
   }
 

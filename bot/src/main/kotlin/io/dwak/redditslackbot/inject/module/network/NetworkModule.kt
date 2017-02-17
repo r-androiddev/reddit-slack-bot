@@ -5,6 +5,7 @@ import dagger.Provides
 import io.reactivex.schedulers.Schedulers
 import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
+import org.slf4j.Logger
 import retrofit2.CallAdapter
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import java.util.*
@@ -14,9 +15,9 @@ import java.util.*
 class NetworkModule {
 
   @Provides
-  fun interceptors(): ArrayList<Interceptor> {
+  fun interceptors(logger: Logger): ArrayList<Interceptor> {
     val interceptors = arrayListOf<Interceptor>()
-    val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger(::println))
+    val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger({ logger.info(it) }))
     loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
     interceptors.add(loggingInterceptor)
 

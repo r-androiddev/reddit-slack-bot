@@ -34,7 +34,8 @@ data class WebHookPayloadAction(val name : String,
 
 enum class ButtonAction(val value: String) {
   ACTION_FLAIR("flair"),
-  ACTION_REMOVE("remove"),
+  ACTION_BEGIN_REMOVE("begin-remove"),
+  ACTION_REMOVAL("removal"),
   ACTION_SELECT_FLAIR("select-flair")
 }
 

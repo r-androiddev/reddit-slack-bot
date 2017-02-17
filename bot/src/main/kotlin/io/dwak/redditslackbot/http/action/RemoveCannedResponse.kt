@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class RemoveRule @Inject constructor(dbHelper: DbHelper) : RequestAction {
-  override val name = "remove-rule"
+class RemoveCannedResponse @Inject constructor(dbHelper: DbHelper) : RequestAction {
+  override val name = "remove-canned-response"
   override val method = "POST"
   override val action: (RequestContext) -> CompletableFuture<String> = {
     completableFuture(it) { req, future ->

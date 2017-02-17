@@ -10,6 +10,8 @@ import io.dwak.redditslackbot.inject.module.db.FirebaseModule
 import io.dwak.redditslackbot.inject.module.network.NetworkModule
 import io.dwak.redditslackbot.reddit.network.adapter.KindAdapter
 import io.dwak.redditslackbot.slack.network.SlackWebhookUrlComponentAdapter
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import retrofit2.Converter
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -35,5 +37,9 @@ class MainModule {
   @Singleton
   fun moshiFactory(moshi: Moshi): Converter.Factory
       = MoshiConverterFactory.create(moshi).asLenient()
+
+  @Provides
+  @Singleton
+  fun logger(): Logger = LoggerFactory.getLogger("RedditSlackBot")
 
 }
