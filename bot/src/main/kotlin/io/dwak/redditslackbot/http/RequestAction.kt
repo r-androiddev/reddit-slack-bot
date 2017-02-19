@@ -10,5 +10,5 @@ interface RequestAction {
   val action: (RequestContext) -> CompletableFuture<String>
 }
 
-fun completableFuture(rc: RequestContext, f: (RequestContext, CompletableFuture<String>) -> Unit)
+inline fun completableFuture(rc: RequestContext, f: (RequestContext, CompletableFuture<String>) -> Unit)
     = CompletableFuture<String>().apply { f(rc, this) }

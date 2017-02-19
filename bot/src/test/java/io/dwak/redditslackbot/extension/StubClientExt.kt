@@ -6,6 +6,8 @@ import com.spotify.apollo.RequestMetadata
 import com.spotify.apollo.request.RequestContexts
 import com.spotify.apollo.request.RequestMetadataImpl
 import com.spotify.apollo.test.StubClient
+import io.dwak.redditslackbot.http.RequestAction
+import okio.ByteString
 import java.time.Instant
 import java.util.*
 

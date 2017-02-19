@@ -3,7 +3,7 @@ package io.dwak.redditslackbot.http.action
 import com.spotify.apollo.RequestContext
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
-import io.dwak.redditslackbot.reddit.RedditBot
+import io.dwak.redditslackbot.reddit.RedditBotImpl
 import kotlinx.html.ButtonType
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class RedditLogin @Inject constructor(private val redditBot: RedditBot) : RequestAction {
+class RedditLogin @Inject constructor(private val redditBot: RedditBotImpl) : RequestAction {
 
   override val name = "reddit-login"
   override val method = "GET"

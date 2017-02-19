@@ -6,7 +6,7 @@ import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
-import io.dwak.redditslackbot.reddit.RedditBot
+import io.dwak.redditslackbot.reddit.RedditBotImpl
 import io.dwak.redditslackbot.slack.SlackBot
 import kotlinx.html.head
 import kotlinx.html.html
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 
 class SlackLogin @Inject constructor(private val slackBot: SlackBot,
-                                     private val redditBot: RedditBot,
+                                     private val redditBot: RedditBotImpl,
                                      @AppConfig private val appConfig: Map<String, String>,
                                      @RedditConfig private val redditConfig: Map<String, String>) : RequestAction {
 

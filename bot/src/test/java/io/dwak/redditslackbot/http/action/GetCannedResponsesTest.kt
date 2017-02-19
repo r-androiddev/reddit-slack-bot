@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-internal class GetCannedResponsesJunit {
+internal class GetCannedResponsesTest {
   private val dbHelper by lazy {
     object : FakeDbHelper() {
       val cannedResponseMap = mapOf(
@@ -30,15 +30,15 @@ internal class GetCannedResponsesJunit {
     }
   }
 
-  private val requestAction = GetCannedResponses(dbHelper);
+  private val requestAction = GetCannedResponses(dbHelper)
   @get:Rule val serviceHelper = ServiceHelper.create(TestBot(requestAction), "test")
   private val stubClient = serviceHelper.stubClient()
 
   @Test
   fun testResponseSuccess() {
 
-    val req = stubClient.createRequestContext(Request.forUri("http://test/get-canned-response", "GET")
-            .withPayload(ByteString.encodeUtf8("team_id=valid&channel_id=path")))
+    val req = stubClient.createRequestContext(Request.forUri("http://test/${requestAction.name}", "GET")
+        .withPayload(ByteString.encodeUtf8("team_id=valid&channel_id=path")))
 
     val response = requestAction.action.invoke(req).get()
     Truth.assertThat(response).contains("response1")

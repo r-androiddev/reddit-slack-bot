@@ -20,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 @Module(includes = arrayOf(
     ActionModule::class,
+    BotModule::class,
     ConfigModule::class,
     DbModule::class,
     FirebaseModule::class,
