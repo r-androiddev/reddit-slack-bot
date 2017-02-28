@@ -8,8 +8,6 @@ import io.dwak.redditslackbot.http.RequestAction
 class TestBot(private val requestAction: RequestAction) : AppInit {
   override fun create(environment: Environment) {
     environment.routingEngine()
-        .registerAutoRoute(Route.async(requestAction.method,
-            "/${requestAction.name}",
-            requestAction.action))
+        .registerAutoRoute(Route.async(requestAction.method, "/${requestAction.name}", requestAction.action))
   }
 }

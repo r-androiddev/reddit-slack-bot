@@ -57,7 +57,7 @@ open class FakeDbHelper: DbHelper {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
-  override fun removeRule(path: String, id: String): Completable {
+  override fun removeCannedResponse(path: String, id: String): Completable {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 }

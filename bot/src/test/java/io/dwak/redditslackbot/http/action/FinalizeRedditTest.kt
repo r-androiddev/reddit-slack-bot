@@ -1,6 +1,5 @@
 package io.dwak.redditslackbot.http.action
 
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.spotify.apollo.Request
 import com.spotify.apollo.test.ServiceHelper

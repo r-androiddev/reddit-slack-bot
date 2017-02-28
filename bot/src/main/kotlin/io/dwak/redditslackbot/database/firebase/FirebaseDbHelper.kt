@@ -190,12 +190,12 @@ class FirebaseDbHelper @Inject constructor(private val firebaseDatabase: Firebas
     }
   }
 
-  override fun removeRule(path: String, id: String): Completable {
+  override fun removeCannedResponse(path: String, id: String): Completable {
     return Completable.create { emitter ->
       firebaseDatabase.getReference(hashForRefRoot(path))
           .child(DB_CANNED_RESPONSES)
           .child(id)
-          .removeValue { databaseError, databaseReference ->
+          .removeValue { databaseError, _ ->
             when (databaseError) {
               null -> emitter.onComplete()
               else -> emitter.onError(databaseError.toException())

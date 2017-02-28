@@ -33,5 +33,5 @@ interface DbHelper {
 
   fun getCannedResponse(path: String, key: String): Single<CannedResponse>
 
-  fun removeRule(path: String, id: String): Completable
+  fun removeCannedResponse(path: String, id: String): Completable
 }
