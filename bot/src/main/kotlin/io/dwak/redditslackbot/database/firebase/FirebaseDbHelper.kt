@@ -12,6 +12,7 @@ import io.dwak.redditslackbot.reddit.model.CannedResponse
 import io.dwak.redditslackbot.slack.model.SlackInfo
 import io.reactivex.Completable
 import io.reactivex.Single
+import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.time.ZoneOffset
@@ -161,10 +162,11 @@ class FirebaseDbHelper @Inject constructor(private val firebaseDatabase: Firebas
             override fun onDataChange(p0: DataSnapshot?) {
               emitter.onSuccess(p0?.children
                   ?.map {
-                    val key = it.key
+                    val key = URLDecoder.decode(it.key, "UTF-8")
                     val ruleMap = it.getValue(object : GenericTypeIndicator<HashMap<String, String>>() {})
                     val mutableEntry = ruleMap.entries.toList()[0]
-                    CannedResponse(key, mutableEntry.key, mutableEntry.value)
+                    CannedResponse(key, URLDecoder.decode(mutableEntry.key, "UTF-8"),
+                        URLDecoder.decode(mutableEntry.value, "UTF-8"))
                   })
             }
           })

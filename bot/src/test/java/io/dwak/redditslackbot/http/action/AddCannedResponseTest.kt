@@ -16,14 +16,9 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AddCannedResponseTest {
-  companion object {
-    const val VALID_PATH = "valid-path"
-  }
 
-  private val dbHelper by lazy {
-    object: FakeDbHelper() {
-      override fun addCannedResponse(path: String, rule: CannedResponse) = Completable.complete()
-    }
+  private val dbHelper = object : FakeDbHelper() {
+    override fun addCannedResponse(path: String, rule: CannedResponse) = Completable.complete()
   }
 
   private val requestAction = AddCannedResponse(dbHelper)

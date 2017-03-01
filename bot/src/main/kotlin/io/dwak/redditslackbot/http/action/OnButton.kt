@@ -6,6 +6,7 @@ import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
+import io.dwak.redditslackbot.reddit.RedditBot
 import io.dwak.redditslackbot.reddit.RedditBotImpl
 import io.dwak.redditslackbot.slack.SlackBot
 import io.dwak.redditslackbot.slack.model.ButtonAction
@@ -19,7 +20,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class OnButton @Inject constructor(private val redditBot: RedditBotImpl,
+class OnButton @Inject constructor(private val redditBot: RedditBot,
                                    private val moshi: Moshi,
                                    @SlackConfig private val slackConfig: Map<String, String>)
   : RequestAction {
@@ -48,7 +49,7 @@ class OnButton @Inject constructor(private val redditBot: RedditBotImpl,
                 redditBot.selectRemovalReason(path, payload)
               }
               payloadAction.value == ButtonAction.ACTION_FLAIR.value -> {
-                redditBot.flairPost(path, payload)
+                redditBot.beginFlair(path, payload)
               }
               payloadAction.value == ButtonAction.ACTION_SELECT_FLAIR.value -> {
                 redditBot.selectFlair(path, payload)

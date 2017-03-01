@@ -16,17 +16,15 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 internal class GetCannedResponsesTest {
-  private val dbHelper by lazy {
-    object : FakeDbHelper() {
-      val cannedResponseMap = mapOf(
-          "valid-path" to listOf(
-              CannedResponse("response1", "title1", "message1"),
-              CannedResponse("response2", "title2", "message2"))
-      )
+  private val dbHelper = object : FakeDbHelper() {
+    val cannedResponseMap = mapOf(
+        "valid-path" to listOf(
+            CannedResponse("response1", "title1", "message1"),
+            CannedResponse("response2", "title2", "message2"))
+    )
 
-      override fun getCannedResponses(path: String): Single<List<CannedResponse>> {
-        return Single.just(cannedResponseMap[path])
-      }
+    override fun getCannedResponses(path: String): Single<List<CannedResponse>> {
+      return Single.just(cannedResponseMap[path])
     }
   }
 

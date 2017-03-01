@@ -17,7 +17,7 @@ interface RedditBot {
 
   fun removePost(path: String, payload: SlackMessagePayload): Completable
 
-  fun flairPost(path: String, payload: SlackMessagePayload): Completable
+  fun beginFlair(path: String, payload: SlackMessagePayload): Completable
 
   fun selectFlair(path: String, payload: SlackMessagePayload): Completable
 }

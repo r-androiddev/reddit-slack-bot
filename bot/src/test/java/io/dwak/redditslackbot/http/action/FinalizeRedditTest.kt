@@ -20,13 +20,11 @@ class FinalizeRedditTest {
     const val TEST_SUBREDDIT = "testsubreddit"
   }
 
-  private val redditBot by lazy {
-    object : FakeRedditBot() {
-      override fun saveSubreddit(path: String, subreddit: String): Completable {
-        assertThat(path).isEqualTo(DATA)
-        assertThat(subreddit).isEqualTo(TEST_SUBREDDIT)
-        return Completable.complete()
-      }
+  private val redditBot = object : FakeRedditBot() {
+    override fun saveSubreddit(path: String, subreddit: String): Completable {
+      assertThat(path).isEqualTo(DATA)
+      assertThat(subreddit).isEqualTo(TEST_SUBREDDIT)
+      return Completable.complete()
     }
   }
 

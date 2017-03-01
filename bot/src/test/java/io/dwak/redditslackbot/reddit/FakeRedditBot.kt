@@ -27,7 +27,7 @@ open class FakeRedditBot : RedditBot {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
-  override fun flairPost(path: String, payload: SlackMessagePayload): Completable {
+  override fun beginFlair(path: String, payload: SlackMessagePayload): Completable {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 

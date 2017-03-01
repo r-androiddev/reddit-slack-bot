@@ -22,13 +22,11 @@ class RemoveCannedResponseTest {
     const val TEST_SUBREDDIT = "testsubreddit"
   }
 
-  private val dbHelper by lazy {
-    object: FakeDbHelper() {
-      override fun removeCannedResponse(path: String, id: String): Completable {
-        assertThat(path).isEqualTo(DATA)
-        assertThat(id).isEqualTo(CANNED_RESPONSE_ID)
-        return Completable.complete()
-      }
+  private val dbHelper = object : FakeDbHelper() {
+    override fun removeCannedResponse(path: String, id: String): Completable {
+      assertThat(path).isEqualTo(DATA)
+      assertThat(id).isEqualTo(CANNED_RESPONSE_ID)
+      return Completable.complete()
     }
   }
 

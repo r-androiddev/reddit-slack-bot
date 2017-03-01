@@ -17,37 +17,38 @@ import retrofit2.http.Path
 interface RedditService {
   @GET("{subreddit}/about/unmoderated")
   fun unmoderated(@Header("Authorization") auth: String,
-                  @Path("subreddit") subreddit : String) : Single<RedditListing>
+                  @Path("subreddit") subreddit: String): Single<RedditListing>
 
   @FormUrlEncoded
   @POST("/api/remove")
-  fun removePost(@Field("id") id : String,
-                 @Field("spam") spam : Boolean) : Completable
+  fun removePost(@Field("id") id: String,
+                 @Field("spam") spam: Boolean): Completable
 
   @FormUrlEncoded
   @POST("/api/comment")
-  fun postComment(@Field("api_type") apiType : String = "json",
-                  @Field("thing_id") thingId : String,
-                  @Field("text") text : String) : Single<RedditCommentResponse>
+  fun postComment(@Field("api_type") apiType: String = "json",
+                  @Field("thing_id") thingId: String,
+                  @Field("text") text: String): Single<RedditCommentResponse>
 
   @FormUrlEncoded
   @POST("/api/distinguish")
-  fun distinguish(@Field("api_type") apiType : String = "json",
-                  @Field("id") id : String,
-                  @Field("how") how : String = "yes") : Completable
+  fun distinguish(@Field("api_type") apiType: String = "json",
+                  @Field("id") id: String,
+                  @Field("how") how: String = "yes"): Completable
 
   @FormUrlEncoded
   @POST("{subreddit}/api/flairselector")
-  fun flairSelector(@Path("subreddit") subreddit : String,
-                    @Field("link") fullname : String) : Single<RedditFlairResponse>
+  fun flairSelector(@Header("Authorization") authorization: String,
+                    @Path("subreddit") subreddit: String,
+                    @Field("link") fullname: String): Single<RedditFlairResponse>
 
   @FormUrlEncoded
   @POST("{subreddit}/api/selectflair")
-  fun selectFlair(@Path("subreddit") subreddit : String,
-                  @Field("api_type") apiType : String = "json",
-                  @Field("flair_template_id") flairTemplateId : String,
-                  @Field("link") fullname: String,
-                  @Field("name") username : String) : Completable
+  fun selectFlair(@Header("Authorization") authorization: String,
+                  @Path("subreddit") subreddit: String,
+                  @Field("api_type") apiType: String = "json",
+                  @Field("flair_template_id") flairTemplateId: String,
+                  @Field("link") fullname: String): Completable
 
   @GET("{subreddit}/wiki/slackbot")
   fun wikiSettings(@Path("subreddit") subreddit: String): Single<ResponseBody>

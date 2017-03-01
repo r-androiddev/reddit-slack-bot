@@ -1,6 +1,5 @@
 package io.dwak.redditslackbot.reddit
 
-import io.dwak.redditslackbot.CannedResponses
 import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
@@ -20,9 +19,9 @@ import io.dwak.redditslackbot.slack.model.WebHookPayloadAttachment
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.SingleSource
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
+import org.slf4j.Logger
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -30,13 +29,11 @@ import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import javax.inject.Singleton
 
 class RedditBotImpl @Inject constructor(private val service: RedditService,
                                         private val loginService: RedditLoginService,
                                         private val slackBot: SlackBot,
                                         private val dbHelper: DbHelper,
-                                        private val cannedResponses: CannedResponses,
                                         @AppConfig private val appConfig: Map<String, String>,
                                         @RedditConfig private val redditConfig: Map<String, String>)
   : RedditBot {
@@ -95,8 +92,8 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
     pollDisposables.put(path,
         Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
             BiFunction<SlackInfo, RedditInfo, Pair<SlackInfo, RedditInfo>> { s, r -> s to r })
-            .subscribe { infos, throwable ->
-              val (slackInfo, redditInfo) = infos
+            .subscribe { infos, _ ->
+              val (_, redditInfo) = infos
               Observable.interval(0, 5L, TimeUnit.MINUTES)
                   .flatMapSingle { service.unmoderated("bearer ${redditInfo.accessToken()}", redditInfo.subreddit()!!) }
                   .map { it.data }
@@ -216,14 +213,19 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
     return Completable.complete()
   }
 
-  override fun flairPost(path: String, payload: SlackMessagePayload): Completable {
+  override fun beginFlair(path: String, payload: SlackMessagePayload): Completable {
     return dbHelper.getRedditInfo(path)
-        .flatMap { service.flairSelector(it.subreddit()!!, "t3_${payload.callbackId}") }
-        .map { flair ->
+        .flatMap { refreshTokenIfNeeded(path) }
+        .flatMap {
+          service.flairSelector("bearer ${it.accessToken()}",
+              it.subreddit()!!,
+              "t3_${payload.callbackId}")
+        }
+        .map { (choices) ->
           val originalMessage = payload.originalMessage
           val originalAttachment = originalMessage.attachments!![0]
           val newActionsList = arrayListOf<WebHookPayloadAction>()
-          flair.choices
+          choices
               .forEach {
                 newActionsList.add(WebHookPayloadAction(name = it.flairTemplateId,
                     text = it.flairText,
@@ -231,28 +233,29 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
               }
           return@map originalMessage.copy(attachments = listOf(originalAttachment.copy(actions = newActionsList)))
         }
-        .flatMapCompletable { slackBot.postToChannel(path, it) }
+        .flatMapCompletable { slackBot.updateMessage(payload.responseUrl, it) }
   }
 
 
   override fun selectFlair(path: String, payload: SlackMessagePayload): Completable {
     return dbHelper.getRedditInfo(path)
+        .flatMap { refreshTokenIfNeeded(path) }
         .flatMapCompletable {
-          service.selectFlair(subreddit = it.subreddit()!!,
+          service.selectFlair(authorization = "Bearer ${it.accessToken()}",
+              subreddit = it.subreddit()!!,
               flairTemplateId = payload.actions[0].name,
-              fullname = "t3_${payload.callbackId}",
-              username = TODO("figure out what this is"))
+              fullname = "t3_${payload.callbackId}")
         }
-        .andThen(SingleSource<WebHookPayload> {
+        .doFinally {
           val originalMessage = payload.originalMessage
-          originalMessage.copy(attachments = listOf(
+          val copy = originalMessage.copy(attachments = listOf(
               WebHookPayloadAttachment(text = originalMessage.attachments!![0].text +
                   "\nFlaired by ${payload.user.name}!",
                   fallback = "Flaired!",
                   callback_id = payload.callbackId,
                   actions = emptyList())))
-        })
-        .flatMapCompletable { slackBot.postToChannel(path, it) }
+          slackBot.updateMessage(payload.responseUrl, copy).subscribe()
+        }
   }
 
   private fun refreshTokenIfNeeded(path: String): Single<RedditInfo> {

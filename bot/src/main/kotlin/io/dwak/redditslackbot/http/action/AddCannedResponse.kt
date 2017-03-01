@@ -7,6 +7,7 @@ import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.reddit.model.CannedResponse
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
@@ -28,6 +29,7 @@ class AddCannedResponse @Inject constructor(val dbHelper: DbHelper) : RequestAct
               .split("\"")
               .filter(String::isNotEmpty)
               .filter(String::isNotBlank)
+              .map { URLEncoder.encode(it, "UTF-8") }
 
           if(ruleStringList.size != 3){
             responseMessage = "Something went wrong, check syntax!"

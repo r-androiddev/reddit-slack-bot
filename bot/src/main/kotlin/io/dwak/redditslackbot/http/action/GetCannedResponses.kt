@@ -1,15 +1,24 @@
 package io.dwak.redditslackbot.http.action
 
 import com.spotify.apollo.RequestContext
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.extension.payloadToMap
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
+import io.dwak.redditslackbot.reddit.model.CannedResponse
+import io.dwak.redditslackbot.slack.SlackBot
+import io.dwak.redditslackbot.slack.model.WebHookPayload
+import io.reactivex.Observable
+import io.reactivex.Single
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper) : RequestAction {
+class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper,
+                                             private val slackBot: SlackBot)
+  : RequestAction {
   override val name = "get-canned-responses"
   override val method = "POST"
   override val action: (RequestContext) -> CompletableFuture<String> = {
@@ -22,9 +31,16 @@ class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper) : R
         map.ifPresent { params: Map<String, String> ->
           val path = "${params["team_id"]}-${params["channel_id"]}"
           dbHelper.getCannedResponses(path)
-              .subscribe { ruleList, _ ->
-                future.complete(ruleList.toString())
+              .map { responses ->
+                responses.map {
+                  "*ID*: ${it.id}" +
+                      "\n\t*Title*: ${it.title}" +
+                      "\n\t*Message*: ${it.message}"
+                }.joinToString(separator = "\n", prefix = "*Canned Responses*\n")
               }
+              .flatMapCompletable { slackBot.postToChannel(path, WebHookPayload(it)) }
+              .subscribe()
+          future.complete("Gathering bits!")
         }
       }
 
