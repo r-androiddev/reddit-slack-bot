@@ -17,8 +17,7 @@ import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper,
-                                             private val slackBot: SlackBot)
+class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper, private val slackBot: SlackBot)
   : RequestAction {
   override val name = "get-canned-responses"
   override val method = "POST"

@@ -1,9 +1,12 @@
 package io.dwak.redditslackbot.reddit
 
 import io.dwak.redditslackbot.database.DbHelper
+import io.dwak.redditslackbot.extension.PairUtil
+import io.dwak.redditslackbot.extension.toTriple
 import io.dwak.redditslackbot.inject.annotation.qualifier.AppConfig
 import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
+import io.dwak.redditslackbot.reddit.model.CannedResponse
 import io.dwak.redditslackbot.reddit.model.RedditInfo
 import io.dwak.redditslackbot.reddit.model.isSelfPost
 import io.dwak.redditslackbot.reddit.model.isSuspiciousPost
@@ -91,9 +94,8 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
     pollDisposables[path]?.dispose()
     pollDisposables.put(path,
         Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
-            BiFunction<SlackInfo, RedditInfo, Pair<SlackInfo, RedditInfo>> { s, r -> s to r })
-            .subscribe { infos, _ ->
-              val (_, redditInfo) = infos
+            PairUtil.createPair<SlackInfo, RedditInfo>())
+            .subscribe { (_, redditInfo), _ ->
               Observable.interval(0, 5L, TimeUnit.MINUTES)
                   .flatMapSingle { service.unmoderated("bearer ${redditInfo.accessToken()}", redditInfo.subreddit()!!) }
                   .map { it.data }
@@ -153,8 +155,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
   override fun selectRemovalReason(path: String, payload: SlackMessagePayload): Completable {
     return dbHelper.getCannedResponses(path)
         .map { it to payload }
-        .map {
-          val (rules, p) = it
+        .map { (rules, p) ->
           val originalMessage = p.originalMessage
           val originalAttachment = originalMessage.attachments!![0]
           val newActionsList = arrayListOf<WebHookPayloadAction>()
@@ -170,77 +171,47 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
   }
 
   override fun removePost(path: String, p: SlackMessagePayload): Completable {
-    dbHelper.getCannedResponse(path, p.actions[0].value.removePrefix("${ButtonAction.ACTION_REMOVAL.value}_"))
-        .map { it to p }
-        .flatMapCompletable { (response, payload) ->
+    return Single.zip(dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
+        dbHelper.getCannedResponse(path, p.actions[0].value.removePrefix("${ButtonAction.ACTION_REMOVAL.value}_")),
+        PairUtil.createPair<RedditInfo, CannedResponse>())
+        .map { it.toTriple(p) }
+        .flatMap { (redditInfo, response, payload) ->
           val fullName = "t3_${payload.callbackId}"
           val isSpam = payload.isSpamRemoval()
-          val removePost = service.removePost(fullName, isSpam)
+          val removePost = service.removePost("Bearer ${redditInfo.accessToken()}", fullName, isSpam)
 
           if (isSpam) {
-            removePost.andThen { response to payload }
+            removePost.toSingle { response to payload }
           }
           else {
-            removePost
-                .andThen {
-                  service.postComment(thingId = fullName, text = response.message)
-                      .flatMapCompletable {
-                        service.distinguish(id = it.json.data.things[0].data.name)
-                      }
+            removePost.toSingle { "" }
+                .flatMap {
+                  service.postComment("Bearer ${redditInfo.accessToken()}", thingId = fullName, text = response.message)
                 }
-                .andThen {
-                  response to payload
+                .flatMapCompletable {
+                  service.distinguish("Bearer ${redditInfo.accessToken()}", id = it.json.data.things[0].data.name)
                 }
+                .toSingle { response to payload }
           }
         }
-//    dbHelper.getCannedResponses(path)
-//        .map { it to payload }
-//        .flatMapCompletable {
-//          responseSlackMessagePayloadPair : Pair<List<io.dwak.redditslackbot.reddit.model.CannedResponse>, SlackMessagePayload> ->
-//          val fullName = "t3_${responseSlackMessagePayloadPair.second.callbackId}"
-//          val isSpam = responseSlackMessagePayloadPair.first.displayName == "Spam"
-//          val removePostObservable = service.removePost(fullName, isSpam)
-//          if (isSpam) {
-//            removePostObservable.andThen {
-//              responseSlackMessagePayloadPair
-//            }
-//          }
-//          else {
-//            removePostObservable
-//                .andThen {
-//                  service.postComment(thingId = fullName,
-//                      text = responseSlackMessagePayloadPair.first.)
-//                }
-//                .andThen {
-//                  service.distinguish(id = it.json.data.things[0].data.name)
-//                }
-//                .andThen {
-//                  responseSlackMessagePayloadPair
-//                }
-//          }
-//        }
-//        .map {
-//          val originalMessage = it.second.originalMessage
-//          val newMessage = originalMessage.copy(attachments = listOf(
-//              WebHookPayloadAttachment(text = "\nRemoved by ${it.second.user.name} for ${it.first.displayName}!"
-//                  + "\n${originalMessage.attachments[0].text}",
-//                  fallback = "Removed!",
-//                  callback_id = it.second.callbackId,
-//                  actions = emptyList())))
-//          Pair(it.second.responseUrl, newMessage)
-//        }
-//        .map(payloadToJson())
-//        .map(getWebHookUrlComponents())
-//        .flatMap(respondToSlackMessage())
-//        .subscribe { println("Done!") }
-    return Completable.complete()
+        .map { (response, payload) ->
+          val originalMessage = payload.originalMessage
+          val newMessage = originalMessage.copy(attachments = listOf(
+              WebHookPayloadAttachment(text = "\nRemoved by ${payload.user.name} for ${response.title}!"
+                  + "\n${originalMessage.attachments!![0].text}",
+                  fallback = "Removed!",
+                  callback_id = payload.callbackId,
+                  actions = emptyList())))
+          Pair(payload.responseUrl, newMessage)
+        }
+        .flatMapCompletable { slackBot.updateMessage(it.first, it.second) }
   }
 
   override fun beginFlair(path: String, payload: SlackMessagePayload): Completable {
     return dbHelper.getRedditInfo(path)
         .flatMap { refreshTokenIfNeeded(path) }
         .flatMap {
-          service.flairSelector("bearer ${it.accessToken()}",
+          service.flairSelector("Bearer ${it.accessToken()}",
               it.subreddit()!!,
               "t3_${payload.callbackId}")
         }

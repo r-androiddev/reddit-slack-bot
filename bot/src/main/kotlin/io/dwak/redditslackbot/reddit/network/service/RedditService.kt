@@ -21,18 +21,21 @@ interface RedditService {
 
   @FormUrlEncoded
   @POST("/api/remove")
-  fun removePost(@Field("id") id: String,
+  fun removePost(@Header("Authorization") auth: String,
+                 @Field("id") id: String,
                  @Field("spam") spam: Boolean): Completable
 
   @FormUrlEncoded
   @POST("/api/comment")
-  fun postComment(@Field("api_type") apiType: String = "json",
+  fun postComment(@Header("Authorization") auth: String,
+                  @Field("api_type") apiType: String = "json",
                   @Field("thing_id") thingId: String,
                   @Field("text") text: String): Single<RedditCommentResponse>
 
   @FormUrlEncoded
   @POST("/api/distinguish")
-  fun distinguish(@Field("api_type") apiType: String = "json",
+  fun distinguish(@Header("Authorization") auth: String,
+                  @Field("api_type") apiType: String = "json",
                   @Field("id") id: String,
                   @Field("how") how: String = "yes"): Completable
 
