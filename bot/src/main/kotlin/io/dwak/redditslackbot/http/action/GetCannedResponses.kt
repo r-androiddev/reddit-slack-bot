@@ -34,9 +34,11 @@ class GetCannedResponses @Inject constructor(private val dbHelper: DbHelper,
           dbHelper.getCannedResponses(path)
               .map { responses ->
                 responses.map {
-                  "*ID*: ${it.id}" +
-                      "\n\t*Title*: ${it.title}" +
-                      "\n\t*Message*: ${it.message}"
+                  "\n```" +
+                      "\nID: ${it.id}" +
+                      "\nTitle: ${it.title}" +
+                      "\nMessage: ${it.message}" +
+                      "\n```"
                 }.joinToString(separator = "\n", prefix = "*Canned Responses*\n")
               }
               .flatMapCompletable { slackBot.postToChannel(path, WebHookPayload(it)) }
