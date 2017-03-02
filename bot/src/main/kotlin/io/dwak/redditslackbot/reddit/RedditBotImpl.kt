@@ -24,7 +24,6 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
-import io.reactivex.functions.BiFunction
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -97,7 +96,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
             PairUtil.createPair<SlackInfo, RedditInfo>())
             .subscribe { (_, redditInfo), _ ->
               Observable.interval(0, 5L, TimeUnit.MINUTES)
-                  .flatMapSingle { service.unmoderated("bearer ${redditInfo.accessToken()}", redditInfo.subreddit()!!) }
+                  .flatMapSingle { service.unmoderated(redditInfo.bearerAccessToken(), redditInfo.subreddit()!!) }
                   .map { it.data }
                   .flatMap { Observable.fromArray(*it.children) }
                   .map { it.data }
@@ -178,7 +177,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
         .flatMap { (redditInfo, response, payload) ->
           val fullName = "t3_${payload.callbackId}"
           val isSpam = payload.isSpamRemoval()
-          val removePost = service.removePost("Bearer ${redditInfo.accessToken()}", fullName, isSpam)
+          val removePost = service.removePost(redditInfo.bearerAccessToken(), fullName, isSpam)
 
           if (isSpam) {
             removePost.toSingle { response to payload }
@@ -186,10 +185,10 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
           else {
             removePost.toSingle { "" }
                 .flatMap {
-                  service.postComment("Bearer ${redditInfo.accessToken()}", thingId = fullName, text = response.message)
+                  service.postComment(redditInfo.bearerAccessToken(), thingId = fullName, text = response.message)
                 }
                 .flatMapCompletable {
-                  service.distinguish("Bearer ${redditInfo.accessToken()}", id = it.json.data.things[0].data.name)
+                  service.distinguish(redditInfo.bearerAccessToken(), id = it.json.data.things[0].data.name)
                 }
                 .toSingle { response to payload }
           }
@@ -211,7 +210,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
     return dbHelper.getRedditInfo(path)
         .flatMap { refreshTokenIfNeeded(path) }
         .flatMap {
-          service.flairSelector("Bearer ${it.accessToken()}",
+          service.flairSelector(it.bearerAccessToken(),
               it.subreddit()!!,
               "t3_${payload.callbackId}")
         }
@@ -235,7 +234,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
     return dbHelper.getRedditInfo(path)
         .flatMap { refreshTokenIfNeeded(path) }
         .flatMapCompletable {
-          service.selectFlair(authorization = "Bearer ${it.accessToken()}",
+          service.selectFlair(authorization = it.bearerAccessToken(),
               subreddit = it.subreddit()!!,
               flairTemplateId = payload.actions[0].name,
               fullname = "t3_${payload.callbackId}")

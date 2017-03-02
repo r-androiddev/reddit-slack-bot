@@ -36,6 +36,10 @@ public abstract class RedditInfo {
         return dataSnapshot.getValue(AutoValue_RedditInfo.FirebaseValue.class).toAutoValue();
     }
 
+    public String bearerAccessToken() {
+        return "Bearer " + accessToken();
+    }
+
     public Object toFirebaseValue() {
         return new AutoValue_RedditInfo.FirebaseValue(this);
     }
