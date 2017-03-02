@@ -16,12 +16,12 @@ import io.dwak.redditslackbot.slack.model.SlackMessagePayload
 import io.dwak.redditslackbot.slack.model.WebHookPayload
 import io.dwak.redditslackbot.slack.model.WebHookPayloadAction
 import io.dwak.redditslackbot.slack.model.WebHookPayloadAttachment
+import io.dwak.redditslackbot.slack.model.isSpamRemoval
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
-import org.slf4j.Logger
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -160,7 +160,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
           val newActionsList = arrayListOf<WebHookPayloadAction>()
           rules.forEach {
             newActionsList.add(WebHookPayloadAction(it.title, it.title,
-                value = "${ButtonAction.ACTION_REMOVAL}_${it.id}"))
+                value = "${ButtonAction.ACTION_REMOVAL.value}_${it.id}"))
           }
           val newMessage = originalMessage.copy(attachments =
           listOf(originalAttachment.copy(actions = newActionsList)))
@@ -169,7 +169,30 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
         .flatMapCompletable { slackBot.updateMessage(it.first, it.second) }
   }
 
-  override fun removePost(path: String, payload: SlackMessagePayload): Completable {
+  override fun removePost(path: String, p: SlackMessagePayload): Completable {
+    dbHelper.getCannedResponse(path, p.actions[0].value.removePrefix("${ButtonAction.ACTION_REMOVAL.value}_"))
+        .map { it to p }
+        .flatMapCompletable { (response, payload) ->
+          val fullName = "t3_${payload.callbackId}"
+          val isSpam = payload.isSpamRemoval()
+          val removePost = service.removePost(fullName, isSpam)
+
+          if (isSpam) {
+            removePost.andThen { response to payload }
+          }
+          else {
+            removePost
+                .andThen {
+                  service.postComment(thingId = fullName, text = response.message)
+                      .flatMapCompletable {
+                        service.distinguish(id = it.json.data.things[0].data.name)
+                      }
+                }
+                .andThen {
+                  response to payload
+                }
+          }
+        }
 //    dbHelper.getCannedResponses(path)
 //        .map { it to payload }
 //        .flatMapCompletable {

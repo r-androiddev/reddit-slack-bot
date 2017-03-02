@@ -9,6 +9,7 @@ import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.reddit.model.CannedResponse
 import io.dwak.redditslackbot.slack.SlackBot
+import io.dwak.redditslackbot.slack.SlackBotImpl
 import io.dwak.redditslackbot.slack.model.WebHookPayload
 import io.reactivex.Observable
 import io.reactivex.Single

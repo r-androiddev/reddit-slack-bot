@@ -8,6 +8,7 @@ import io.dwak.redditslackbot.inject.annotation.qualifier.reddit.RedditConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.RedditBotImpl
 import io.dwak.redditslackbot.slack.SlackBot
+import io.dwak.redditslackbot.slack.SlackBotImpl
 import kotlinx.html.head
 import kotlinx.html.html
 import kotlinx.html.meta

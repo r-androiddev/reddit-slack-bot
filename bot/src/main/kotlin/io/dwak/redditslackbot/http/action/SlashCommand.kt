@@ -6,14 +6,14 @@ import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.extension.payloadToMap
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
-import io.dwak.redditslackbot.reddit.RedditBotImpl
+import io.dwak.redditslackbot.reddit.RedditBot
 import io.dwak.redditslackbot.slack.SlackBot
 import io.dwak.redditslackbot.slack.model.WebHookPayload
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 
-class SlashCommand @Inject constructor(private val redditBot: Lazy<RedditBotImpl>,
+class SlashCommand @Inject constructor(private val redditBot: Lazy<RedditBot>,
                                        private val slackBot: Lazy<SlackBot>,
                                        private val dbHelper: Lazy<DbHelper>)
   : RequestAction {

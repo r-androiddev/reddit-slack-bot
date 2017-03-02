@@ -7,14 +7,10 @@ import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.inject.annotation.qualifier.slack.SlackConfig
 import io.dwak.redditslackbot.inject.module.config.ConfigValues
 import io.dwak.redditslackbot.reddit.RedditBot
-import io.dwak.redditslackbot.reddit.RedditBotImpl
-import io.dwak.redditslackbot.slack.SlackBot
 import io.dwak.redditslackbot.slack.model.ButtonAction
 import io.dwak.redditslackbot.slack.model.SlackMessagePayload
 import io.reactivex.Completable
 import io.reactivex.Observable
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.net.URLDecoder
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
