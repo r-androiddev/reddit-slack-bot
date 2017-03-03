@@ -1,5 +1,6 @@
 package io.dwak.redditslackbot.database.firebase
 
+import com.google.common.base.Utf8
 import com.google.common.hash.Hashing
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -186,7 +187,9 @@ class FirebaseDbHelper @Inject constructor(private val firebaseDatabase: Firebas
                   ?.entries
                   ?.toList()
                   ?.get(0)
-              emitter.onSuccess(CannedResponse(key, ruleEntry?.key!!, ruleEntry?.value!!))
+              emitter.onSuccess(CannedResponse(URLDecoder.decode(key, "UTF-8"),
+                  URLDecoder.decode(ruleEntry?.key!!, "UTF-8"),
+                  URLDecoder.decode(ruleEntry?.value!!, "UTF-8")))
             }
           })
     }
