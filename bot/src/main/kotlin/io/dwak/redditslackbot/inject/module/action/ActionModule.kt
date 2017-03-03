@@ -7,6 +7,7 @@ import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.action.AddCannedResponse
 import io.dwak.redditslackbot.http.action.FinalizeReddit
 import io.dwak.redditslackbot.http.action.GetCannedResponses
+import io.dwak.redditslackbot.http.action.Index
 import io.dwak.redditslackbot.http.action.OnButton
 import io.dwak.redditslackbot.http.action.RedditLogin
 import io.dwak.redditslackbot.http.action.RemoveCannedResponse
@@ -15,6 +16,10 @@ import io.dwak.redditslackbot.http.action.SlashCommand
 
 @Module
 abstract class ActionModule {
+
+  @Binds
+  @IntoSet
+  abstract fun index(impl: Index): RequestAction
 
   @Binds
   @IntoSet
