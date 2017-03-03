@@ -51,8 +51,7 @@ class SlackBotImpl @Inject constructor(private val slackService: SlackService,
   override fun updateMessage(responseUrl: String, payload: WebHookPayload): Completable {
     return Single.fromCallable { moshi.adapter(WebHookPayload::class.java).toJson(payload) }
         .map { getWebHookUrlComponents(responseUrl) to it }
-        .flatMapCompletable {
-          val (url, webhookPayload) = it
+        .flatMapCompletable { (url, webhookPayload) ->
           slackService.respondToMessage(url.id1, url.id2, url.id3, webhookPayload)
         }
   }
