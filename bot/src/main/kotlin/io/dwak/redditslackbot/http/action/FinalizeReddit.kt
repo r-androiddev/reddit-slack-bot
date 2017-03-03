@@ -6,7 +6,6 @@ import io.dwak.redditslackbot.extension.toKotlinOptional
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
 import io.dwak.redditslackbot.reddit.RedditBot
-import io.dwak.redditslackbot.reddit.RedditBotImpl
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 

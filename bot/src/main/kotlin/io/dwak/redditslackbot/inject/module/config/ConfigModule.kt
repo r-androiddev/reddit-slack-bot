@@ -24,4 +24,10 @@ class ConfigModule {
   @Singleton @AppConfig
   fun hostUrl(config: Config)
       = config.getStringFor(ConfigValues.Application, ConfigValues.Application.HOST_URL)
+
+  @Provides
+  @IntoMap @StringKey(ConfigValues.Application.HOST_PATH)
+  @Singleton @AppConfig
+  fun hostPath(config: Config)
+      = config.getStringFor(ConfigValues.Application, ConfigValues.Application.HOST_PATH)
 }

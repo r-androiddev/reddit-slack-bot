@@ -45,6 +45,7 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
   }
 
   private val hostUrl by lazy { appConfig[ConfigValues.Application.HOST_URL] }
+  private val hostPath by lazy { appConfig[ConfigValues.Application.HOST_PATH] }
   private val clientId by lazy { redditConfig[ConfigValues.Reddit.CLIENT_ID]!! }
   private val clientSecret by lazy { redditConfig[ConfigValues.Reddit.CLIENT_SECRET]!! }
   private val basicAuth by lazy {
@@ -54,12 +55,12 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
   private val pollDisposables = hashMapOf<String, Disposable>()
   private val inProgressLogins = hashMapOf<String, String>()
 
-  fun beginLogin(state: String, path: String) {
+  override fun beginLogin(state: String, path: String) {
     inProgressLogins.put(state, path)
   }
 
   override fun login(state: String, code: String): Single<Pair<String, RedditInfo>> {
-    return loginService.getAccessToken(basicAuth, "authorization_code", code, "$hostUrl/reddit-login")
+    return loginService.getAccessToken(basicAuth, "authorization_code", code, "$hostUrl$hostPath/reddit-login")
         .map {
           RedditInfo.builder()
               .accessToken(it.accessToken)

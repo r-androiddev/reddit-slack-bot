@@ -17,10 +17,10 @@ class FirebaseModule {
 
       : FirebaseDatabase {
     val classLoader = javaClass.classLoader
-    val configFile = classLoader.getResource(config[ConfigValues.Firebase.ACCOUNT_KEY_PATH]).file
+    val configFile = classLoader.getResourceAsStream(config[ConfigValues.Firebase.ACCOUNT_KEY_PATH])
     val options = FirebaseOptions.Builder()
         .setDatabaseUrl("https://${config[ConfigValues.Firebase.PROJECT_ID]}.firebaseio.com/")
-        .setServiceAccount(FileInputStream(configFile))
+        .setServiceAccount(configFile)
         .build()
 
     FirebaseApp.initializeApp(options)

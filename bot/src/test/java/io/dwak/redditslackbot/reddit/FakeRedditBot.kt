@@ -6,6 +6,7 @@ import io.reactivex.Completable
 import io.reactivex.Single
 
 open class FakeRedditBot : RedditBot {
+  override fun beginLogin(state: String, path: String): Unit = TODO("not implemented")
   override fun login(state: String, code: String): Single<Pair<String, RedditInfo>> = TODO("not implemented")
   override fun saveSubreddit(path: String, subreddit: String): Completable = TODO("not implemented")
   override fun pollForPosts(path: String): Unit = TODO("not implemented")

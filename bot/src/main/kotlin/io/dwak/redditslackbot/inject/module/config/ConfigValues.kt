@@ -6,6 +6,7 @@ sealed class ConfigValues {
   object Application: ConfigValues() {
     override val PATH: String = "application"
     const val HOST_URL = "host_url"
+    const val HOST_PATH = "host_path"
   }
 
   object Firebase : ConfigValues() {

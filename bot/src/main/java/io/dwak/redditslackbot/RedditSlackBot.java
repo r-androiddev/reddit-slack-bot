@@ -6,7 +6,7 @@ import io.dwak.redditslackbot.inject.component.DaggerMainComponent;
 import io.dwak.redditslackbot.inject.component.MainComponent;
 
 public class RedditSlackBot {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void main(String[] args) throws LoadingException {
         final MainComponent mainComponent = DaggerMainComponent.create();

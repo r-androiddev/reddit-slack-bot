@@ -1,18 +1,12 @@
 package io.dwak.redditslackbot.http.action
 
 import com.spotify.apollo.RequestContext
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import io.dwak.redditslackbot.database.DbHelper
 import io.dwak.redditslackbot.extension.payloadToMap
 import io.dwak.redditslackbot.http.RequestAction
 import io.dwak.redditslackbot.http.completableFuture
-import io.dwak.redditslackbot.reddit.model.CannedResponse
 import io.dwak.redditslackbot.slack.SlackBot
-import io.dwak.redditslackbot.slack.SlackBotImpl
 import io.dwak.redditslackbot.slack.model.WebHookPayload
-import io.reactivex.Observable
-import io.reactivex.Single
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 

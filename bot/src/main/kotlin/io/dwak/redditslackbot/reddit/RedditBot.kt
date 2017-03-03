@@ -7,6 +7,8 @@ import io.reactivex.Single
 
 
 interface RedditBot {
+  fun beginLogin(state: String, path: String)
+
   fun login(state: String, code: String): Single<Pair<String, RedditInfo>>
 
   fun saveSubreddit(path: String, subreddit: String): Completable
