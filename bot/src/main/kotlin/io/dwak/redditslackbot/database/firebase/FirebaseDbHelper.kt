@@ -189,7 +189,7 @@ class FirebaseDbHelper @Inject constructor(private val firebaseDatabase: Firebas
                   ?.get(0)
               emitter.onSuccess(CannedResponse(URLDecoder.decode(key, "UTF-8"),
                   URLDecoder.decode(ruleEntry?.key!!, "UTF-8"),
-                  URLDecoder.decode(ruleEntry?.value!!, "UTF-8")))
+                  URLDecoder.decode(ruleEntry.value, "UTF-8")))
             }
           })
     }

@@ -24,6 +24,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Action
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -93,10 +94,13 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
   override fun pollForPosts(path: String) {
     pollDisposables[path]?.dispose()
     pollDisposables.put(path,
-        Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
-            PairUtil.createPair<SlackInfo, RedditInfo>())
-            .subscribe { (_, redditInfo), _ ->
-              Observable.interval(0, 5L, TimeUnit.MINUTES)
+        Observable.interval(0, 5L, TimeUnit.MINUTES)
+            .flatMapSingle {
+              Single.zip(dbHelper.getSlackInfo(path), dbHelper.getRedditInfo(path).flatMap { refreshTokenIfNeeded(path) },
+                  PairUtil.createPair<SlackInfo, RedditInfo>())
+            }
+            .subscribe { (_, redditInfo) ->
+              Observable.just(redditInfo)
                   .flatMapSingle { service.unmoderated(redditInfo.bearerAccessToken(), redditInfo.subreddit()!!) }
                   .map { it.data }
                   .flatMap { Observable.fromArray(*it.children) }
@@ -148,7 +152,8 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
                     slackBot.postToChannel(path, payload = it)
                         .andThen { dbHelper.setLastCheckedTime(path, ZonedDateTime.now(ZoneOffset.UTC)) }
                   }
-                  .subscribe()
+                  .subscribe({ },
+                      { t -> slackBot.postToChannel(path, WebHookPayload(t.message ?: "Error in poll!")).subscribe() })
             })
   }
 
@@ -176,22 +181,29 @@ class RedditBotImpl @Inject constructor(private val service: RedditService,
         PairUtil.createPair<RedditInfo, CannedResponse>())
         .map { it.toTriple(p) }
         .flatMap { (redditInfo, response, payload) ->
+          val responseWithFooter = response.copy(
+              message = response.message +
+                  "\n Beep. Boop. I am not human and will not respond to messages. " +
+                  "Please file all complaints to " +
+                  "[/r/${redditInfo.subreddit()}](https://www.reddit.com/r/${redditInfo.subreddit()}) " +
+                  "via [modmail](https://www.reddit.com/message/compose?to=%2Fr%2F${redditInfo.subreddit()})")
           val fullName = "t3_${payload.callbackId}"
           val isSpam = payload.isSpamRemoval()
           val removePost = service.removePost(redditInfo.bearerAccessToken(), fullName, isSpam)
 
           if (isSpam) {
-            removePost.toSingle { response to payload }
+            removePost.toSingle { responseWithFooter to payload }
           }
           else {
             removePost.toSingle { "" }
                 .flatMap {
-                  service.postComment(redditInfo.bearerAccessToken(), thingId = fullName, text = response.message)
+                  service.postComment(redditInfo.bearerAccessToken(), thingId = fullName,
+                      text = responseWithFooter.message)
                 }
                 .flatMapCompletable {
                   service.distinguish(redditInfo.bearerAccessToken(), id = it.json.data.things[0].data.name)
                 }
-                .toSingle { response to payload }
+                .toSingle { responseWithFooter to payload }
           }
         }
         .map { (response, payload) ->
